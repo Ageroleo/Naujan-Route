@@ -1,0 +1,120 @@
+<svg width="400" height="400" viewBox="0 0 400 400" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="featherGrad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#f59e0b" />
+      <stop offset="50%" stop-color="#d97706" />
+      <stop offset="100%" stop-color="#b45309" />
+    </linearGradient>
+    <linearGradient id="wingGrad" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#10b981" />
+      <stop offset="100%" stop-color="#059669" />
+    </linearGradient>
+    <linearGradient id="salakotGrad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#fbbf24" />
+      <stop offset="40%" stop-color="#f59e0b" />
+      <stop offset="100%" stop-color="#d97706" />
+    </linearGradient>
+    <linearGradient id="vestGrad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#fb923c" />
+      <stop offset="100%" stop-color="#ea580c" />
+    </linearGradient>
+    <linearGradient id="waterGrad" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#38bdf8" stop-opacity="0" />
+      <stop offset="30%" stop-color="#38bdf8" stop-opacity="0.5" />
+      <stop offset="50%" stop-color="#0ea5e9" stop-opacity="0.7" />
+      <stop offset="70%" stop-color="#38bdf8" stop-opacity="0.5" />
+      <stop offset="100%" stop-color="#38bdf8" stop-opacity="0" />
+    </linearGradient>
+  </defs>
+
+  <!-- Water ripples -->
+  <ellipse cx="200" cy="368" rx="130" ry="8" fill="url(#waterGrad)" opacity="0.5" />
+  <ellipse cx="200" cy="358" rx="105" ry="6" fill="url(#waterGrad)" opacity="0.35" />
+  <ellipse cx="200" cy="378" rx="150" ry="6" fill="url(#waterGrad)" opacity="0.25" />
+
+  <!-- Body -->
+  <ellipse cx="200" cy="280" rx="88" ry="82" fill="url(#featherGrad)" />
+  <ellipse cx="200" cy="300" rx="58" ry="52" fill="#fbbf24" opacity="0.45" />
+
+  <!-- Tail feathers -->
+  <path d="M275 260 Q310 230 295 200" stroke="#b45309" stroke-width="4" fill="none" stroke-linecap="round" />
+  <path d="M280 268 Q320 240 308 208" stroke="#92400e" stroke-width="3" fill="none" stroke-linecap="round" />
+  <path d="M270 255 Q298 222 285 195" stroke="#d97706" stroke-width="3.5" fill="none" stroke-linecap="round" />
+
+  <!-- Left wing -->
+  <path d="M112 260 Q95 230 115 210 Q140 195 155 230 Q162 250 145 275 Q130 290 112 260Z" fill="url(#wingGrad)" opacity="0.9" />
+  <path d="M125 225 Q138 218 148 235" stroke="#047857" stroke-width="1.5" fill="none" opacity="0.5" />
+  <path d="M118 240 Q133 233 142 248" stroke="#047857" stroke-width="1.5" fill="none" opacity="0.5" />
+
+  <!-- Right wing -->
+  <path d="M288 260 Q305 230 285 210 Q260 195 245 230 Q238 250 255 275 Q270 290 288 260Z" fill="url(#wingGrad)" opacity="0.9" />
+  <path d="M275 225 Q262 218 252 235" stroke="#047857" stroke-width="1.5" fill="none" opacity="0.5" />
+  <path d="M282 240 Q267 233 258 248" stroke="#047857" stroke-width="1.5" fill="none" opacity="0.5" />
+
+  <!-- Life vest -->
+  <path d="M148 240 Q155 210 200 205 Q245 210 252 240 L252 310 Q245 330 200 335 Q155 330 148 310Z" fill="url(#vestGrad)" opacity="0.92" />
+  <rect x="192" y="215" width="16" height="110" rx="3" fill="#c2410c" opacity="0.4" />
+  <rect x="185" y="240" width="30" height="8" rx="2" fill="#9a3412" opacity="0.5" />
+  <rect x="185" y="275" width="30" height="8" rx="2" fill="#9a3412" opacity="0.5" />
+  <path d="M165 225 Q180 215 200 212 Q220 215 235 225" stroke="#ea580c" stroke-width="3" fill="none" stroke-linecap="round" />
+  <rect x="152" y="260" width="96" height="4" rx="2" fill="#fef3c7" opacity="0.6" />
+
+  <!-- Feet -->
+  <ellipse cx="172" cy="358" rx="22" ry="8" fill="#f97316" />
+  <path d="M155 358 L150 350" stroke="#ea580c" stroke-width="2" stroke-linecap="round" />
+  <path d="M165 358 L162 349" stroke="#ea580c" stroke-width="2" stroke-linecap="round" />
+  <path d="M175 358 L174 349" stroke="#ea580c" stroke-width="2" stroke-linecap="round" />
+  <ellipse cx="228" cy="358" rx="22" ry="8" fill="#f97316" />
+  <path d="M245 358 L250 350" stroke="#ea580c" stroke-width="2" stroke-linecap="round" />
+  <path d="M235 358 L238 349" stroke="#ea580c" stroke-width="2" stroke-linecap="round" />
+  <path d="M225 358 L226 349" stroke="#ea580c" stroke-width="2" stroke-linecap="round" />
+
+  <!-- Neck -->
+  <ellipse cx="200" cy="200" rx="38" ry="28" fill="url(#featherGrad)" />
+
+  <!-- Binoculars -->
+  <g transform="translate(182, 195) scale(0.65)">
+    <path d="M-10 -20 Q18 -35 46 -20" stroke="#475569" stroke-width="3" fill="none" stroke-linecap="round" />
+    <rect x="0" y="4" width="14" height="20" rx="3" fill="#334155" />
+    <rect x="22" y="4" width="14" height="20" rx="3" fill="#334155" />
+    <rect x="12" y="8" width="12" height="6" rx="1" fill="#64748b" />
+    <circle cx="7" cy="22" r="5" fill="#38bdf8" stroke="#0284c7" stroke-width="1.5" />
+    <circle cx="29" cy="22" r="5" fill="#38bdf8" stroke="#0284c7" stroke-width="1.5" />
+    <circle cx="5.5" cy="20.5" r="1.5" fill="#ffffff" />
+    <circle cx="27.5" cy="20.5" r="1.5" fill="#ffffff" />
+  </g>
+
+  <!-- Head -->
+  <circle cx="200" cy="155" r="52" fill="url(#featherGrad)" />
+  <ellipse cx="200" cy="140" rx="30" ry="18" fill="#fbbf24" opacity="0.35" />
+
+  <!-- Salakot hat -->
+  <ellipse cx="200" cy="118" rx="68" ry="14" fill="#d97706" />
+  <path d="M135 118 Q200 50 265 118" fill="url(#salakotGrad)" />
+  <circle cx="200" cy="72" r="6" fill="#92400e" />
+  <path d="M155 108 Q200 75 245 108" stroke="#b45309" stroke-width="1" fill="none" opacity="0.5" />
+  <path d="M148 113 Q200 82 252 113" stroke="#b45309" stroke-width="1" fill="none" opacity="0.4" />
+  <path d="M165 100 Q200 80 235 100" stroke="#92400e" stroke-width="0.8" fill="none" opacity="0.35" />
+  <path d="M155 118 Q158 145 165 155" stroke="#92400e" stroke-width="1.5" fill="none" opacity="0.6" />
+  <path d="M245 118 Q242 145 235 155" stroke="#92400e" stroke-width="1.5" fill="none" opacity="0.6" />
+
+  <!-- Cheeks -->
+  <ellipse cx="160" cy="168" rx="8" ry="5" fill="#f43f5e" opacity="0.45" />
+  <ellipse cx="240" cy="168" rx="8" ry="5" fill="#f43f5e" opacity="0.45" />
+
+  <!-- Eyes -->
+  <ellipse cx="178" cy="150" rx="12" ry="14" fill="#ffffff" />
+  <ellipse cx="178" cy="150" rx="10" ry="13" fill="#0f172a" />
+  <circle cx="175" cy="145" r="4.5" fill="#ffffff" />
+  <circle cx="182" cy="155" r="2" fill="#ffffff" />
+  <ellipse cx="222" cy="150" rx="12" ry="14" fill="#ffffff" />
+  <ellipse cx="222" cy="150" rx="10" ry="13" fill="#0f172a" />
+  <circle cx="219" cy="145" r="4.5" fill="#ffffff" />
+  <circle cx="226" cy="155" r="2" fill="#ffffff" />
+
+  <!-- Beak -->
+  <path d="M182 172 Q200 190 218 172 Q210 180 200 182 Q190 180 182 172Z" fill="#f97316" />
+  <path d="M186 172 Q200 180 214 172" stroke="#ea580c" stroke-width="1.2" fill="none" />
+  <circle cx="194" cy="175" r="1.2" fill="#c2410c" />
+  <circle cx="206" cy="175" r="1.2" fill="#c2410c" />
+</svg>
