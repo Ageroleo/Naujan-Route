@@ -5,8 +5,8 @@ import BottomNav from '@/components/layout/BottomNav';
 
 export const metadata: Metadata = {
   title: {
-    default: 'Naujan Route — Tourism Guide | Oriental Mindoro',
-    template: '%s | Naujan Route',
+    default: 'Naujan Trail — Tourism Guide | Oriental Mindoro',
+    template: '%s | Naujan Trail',
   },
   description:
     'Your pocket guide to exploring Naujan, Oriental Mindoro, Philippines. Discover attractions, plan routes, calculate fares, and access emergency contacts — even offline.',
@@ -23,10 +23,10 @@ export const metadata: Metadata = {
   ],
   authors: [{ name: 'Municipality of Naujan' }],
   openGraph: {
-    title: 'Naujan Route — Tourism Guide',
+    title: 'Naujan Trail — Tourism Guide',
     description:
       'Discover Naujan, Oriental Mindoro. Attractions, routes, fares & emergency contacts in one offline-ready app.',
-    siteName: 'Naujan Route',
+    siteName: 'Naujan Trail',
     locale: 'en_PH',
     type: 'website',
   },

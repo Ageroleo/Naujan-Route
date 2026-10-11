@@ -17,7 +17,7 @@ export default function Loading() {
         {/* Brand Text */}
         <div className="text-center space-y-1">
           <h1 className="text-xl font-bold font-[family-name:var(--font-display)] text-slate-900 tracking-tight">
-            Naujan Route
+            Naujan Trail
           </h1>
           <p className="text-xs text-slate-500">Oriental Mindoro</p>
         </div>

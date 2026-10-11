@@ -17,7 +17,7 @@ export default function Header() {
           </div>
           <div>
             <h1 className="text-base font-bold font-[family-name:var(--font-display)] leading-tight tracking-tight text-slate-900">
-              Naujan Route
+              Naujan Trail
             </h1>
             <p className="text-[10px] text-slate-500 leading-none">
               Oriental Mindoro

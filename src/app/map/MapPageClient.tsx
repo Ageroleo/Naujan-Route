@@ -24,11 +24,11 @@ import {
   MapPin,
 } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
-import { FALLBACK_ATTRACTIONS, FALLBACK_TRANSPORT } from '@/lib/data/fallback';
-import { CATEGORY_CONFIG, VEHICLE_CONFIG, type Attraction, type TransportMatrix } from '@/lib/types/database';
+import { FALLBACK_ATTRACTIONS } from '@/lib/data/fallback';
+import { CATEGORY_CONFIG, type Attraction } from '@/lib/types/database';
 import { CATEGORY_ICONS, CATEGORY_SVG_STRINGS } from '@/components/icons/CategoryIcons';
-import { VEHICLE_ICONS } from '@/components/icons/TransportIcons';
 import { fetchRoutes, type RouteResult } from '@/lib/routing';
+import { calculateCombinedFare, type CombinedFareResult } from '@/lib/data/jeepney-route';
 import NawiMapBuddy from '@/components/mascot/NawiMapBuddy';
 
 // Naujan center coordinates
@@ -59,33 +59,6 @@ function haversineDistance(
   return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 }
 
-// Round to nearest ₱0.25 (LTFRB rounding rule)
-function roundToNearest25(value: number): number {
-  return Math.round(value * 4) / 4;
-}
-
-// Calculate fare based on distance and transport matrix
-function calculateFare(distanceKm: number, transport: TransportMatrix): number {
-  if (distanceKm <= transport.base_km) return transport.base_fare;
-  const extraKm = distanceKm - transport.base_km;
-  const rawFare = transport.base_fare + extraKm * transport.per_km_rate;
-  // Jeepney fares are rounded to nearest ₱0.25 per LTFRB
-  if (transport.vehicle_type === 'jeepney') return roundToNearest25(rawFare);
-  return rawFare;
-}
-
-// Calculate discounted fare (S/E/D — 20% off)
-function calculateDiscountedFare(distanceKm: number, transport: TransportMatrix): number | null {
-  const discountRate = transport.discount_percent ?? 0;
-  if (discountRate <= 0) return null;
-  const multiplier = 1 - discountRate / 100;
-  const discountedBase = transport.base_fare * multiplier;
-  const discountedPerKm = transport.per_km_rate * multiplier;
-  const extraKm = Math.max(0, distanceKm - transport.base_km);
-  const rawFare = discountedBase + extraKm * discountedPerKm;
-  if (transport.vehicle_type === 'jeepney') return roundToNearest25(rawFare);
-  return rawFare;
-}
 
 // Create custom colored icons for each category
 function createCategoryIcon(category: string, isHighlighted = false): L.DivIcon {
@@ -149,6 +122,8 @@ function createUserIcon(): L.DivIcon {
     iconAnchor: [9, 9],
   });
 }
+
+
 
 // Component that auto-centers the map — now route-aware
 function MapController({
@@ -251,7 +226,6 @@ export default function MapPageClient() {
   const attractionSlug = searchParams.get('attraction');
 
   const [attractions, setAttractions] = useState<Attraction[]>(FALLBACK_ATTRACTIONS);
-  const [transport, setTransport] = useState<TransportMatrix[]>(FALLBACK_TRANSPORT);
   const [userLocation, setUserLocation] = useState<[number, number] | null>(null);
   const [fareExpanded, setFareExpanded] = useState(true);
 
@@ -294,36 +268,24 @@ export default function MapPageClient() {
     [activeRoute, distanceKm]
   );
 
-  // Fare estimates for each vehicle type
-  const fareEstimates = useMemo(() => {
-    if (distanceKm === null) return null;
-    return transport
-      .filter((t) => t.vehicle_type !== 'boat')
-      .map((t) => ({
-        vehicle: t.vehicle_type,
-        fare: calculateFare(distanceKm, t),
-        discountedFare: calculateDiscountedFare(distanceKm, t),
-        specialRate: t.special_trip_rate,
-        notes: t.notes,
-        config: VEHICLE_CONFIG[t.vehicle_type],
-      }));
-  }, [distanceKm, transport]);
+  // Combined fare: jeepney (highway) + tricycle (last mile)
+  const combinedFare: CombinedFareResult | null = useMemo(() => {
+    if (!userLocation || !targetAttraction) return null;
+    return calculateCombinedFare(
+      userLocation[0], userLocation[1],
+      targetAttraction.latitude, targetAttraction.longitude
+    );
+  }, [userLocation, targetAttraction]);
 
   // Fetch data from Supabase
   useEffect(() => {
     async function fetchData() {
       try {
         const supabase = createClient();
-        const [attractionsRes, transportRes] = await Promise.all([
-          supabase.from('attractions').select('*').order('name'),
-          supabase.from('transport_matrix').select('*'),
-        ]);
+        const attractionsRes = await supabase.from('attractions').select('*').order('name');
 
         if (!attractionsRes.error && attractionsRes.data?.length) {
           setAttractions(attractionsRes.data as Attraction[]);
-        }
-        if (!transportRes.error && transportRes.data?.length) {
-          setTransport(transportRes.data as TransportMatrix[]);
         }
       } catch {
         // Use fallback
@@ -473,6 +435,9 @@ export default function MapPageClient() {
               url="https://tile.openstreetmap.de/{z}/{x}/{y}.png"
               attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
             />
+
+
+
 
             {/* All attraction markers */}
             {attractions.map((attraction) => (
@@ -839,43 +804,86 @@ export default function MapPageClient() {
                 </div>
               )}
 
-              {/* Fare Estimates */}
-              {fareEstimates && fareEstimates.length > 0 && (
-                <div className="space-y-2">
-                  <p className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider">
-                    Estimated Fare {activeRoute ? '(road distance)' : isOfflineFallback ? '(direct distance)' : ''}
-                  </p>
-                  {fareEstimates.map((est) => (
-                    <div
-                      key={est.vehicle}
-                      className="flex items-center justify-between px-3 py-2.5 rounded-lg bg-slate-50 border border-slate-200/60"
-                    >
-                      <div className="flex items-center gap-2.5">
-                        {(() => {
-                          const VIcon = VEHICLE_ICONS[est.vehicle as keyof typeof VEHICLE_ICONS];
-                          return VIcon
-                            ? <VIcon size={22} className="text-emerald-600 shrink-0" />
-                            : <span className="text-lg">{est.config.emoji}</span>;
-                        })()}
-                        <div>
-                          <p className="text-xs font-semibold text-slate-900">{est.config.label}</p>
-                          {est.discountedFare !== null && (
-                            <p className="text-[10px] text-sky-600">
-                              S/E/D: ₱{est.discountedFare.toFixed(0)}
+              {/* Combined Route Fare Breakdown */}
+              {combinedFare && (
+                <div className="space-y-2.5">
+                  <div className="flex items-center justify-between px-3 py-2.5 rounded-lg bg-emerald-50 border border-emerald-200/80">
+                    <div>
+                      <p className="text-xs font-bold text-slate-900">Total Combined Fare</p>
+                      <p className="text-[10px] text-slate-500">Jeepney Highway + Tricycle</p>
+                      <p className="text-[10px] text-sky-600 font-medium">
+                        Student/Senior/PWD: ₱{combinedFare.totalFare.discounted.toFixed(2)}
+                      </p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-base font-extrabold text-emerald-700">
+                        ₱{combinedFare.totalFare.regular.toFixed(2)}
+                      </p>
+                      <p className="text-[10px] text-slate-500 font-medium">regular fare</p>
+                    </div>
+                  </div>
+
+                  {/* Route Leg Breakdown */}
+                  <div className="rounded-lg bg-slate-50 border border-slate-200/60 p-2.5 space-y-2">
+                    <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">
+                      Trip Breakdown
+                    </p>
+
+                    {/* Leg 1: Tricycle to highway if needed */}
+                    {!combinedFare.userOnHighway && (
+                      <div className="flex items-start justify-between text-xs text-slate-700">
+                        <div className="flex items-start gap-1.5">
+                          <span className="shrink-0 mt-0.5 text-amber-600 font-bold">🛺</span>
+                          <div>
+                            <p className="font-semibold text-slate-800">Tricycle to Highway</p>
+                            <p className="text-[10px] text-slate-500">
+                              To {combinedFare.boardingStop.name} ({combinedFare.boardingTricycleDistKm.toFixed(1)} km)
                             </p>
-                          )}
+                          </div>
+                        </div>
+                        <span className="font-semibold text-slate-900">
+                          ₱{combinedFare.boardingTricycleFare.regular.toFixed(2)}
+                        </span>
+                      </div>
+                    )}
+
+                    {/* Leg 2: Jeepney along highway */}
+                    <div className="flex items-start justify-between text-xs text-slate-700">
+                      <div className="flex items-start gap-1.5">
+                        <span className="shrink-0 mt-0.5 text-blue-600 font-bold">🚐</span>
+                        <div>
+                          <p className="font-semibold text-slate-800">Jeepney (National Highway)</p>
+                          <p className="text-[10px] text-slate-500">
+                            {combinedFare.boardingStop.name} → {combinedFare.dropoffStop.name}
+                          </p>
                         </div>
                       </div>
-                      <div className="text-right">
-                        <p className="text-sm font-bold text-emerald-600">
-                          ₱{est.fare.toFixed(0)}
-                        </p>
-                        <p className="text-[10px] text-slate-400">regular</p>
-                      </div>
+                      <span className="font-semibold text-slate-900">
+                        ₱{combinedFare.jeepneyFare.regular.toFixed(2)}
+                      </span>
                     </div>
-                  ))}
-                  <p className="text-[9px] text-slate-400 text-center pt-1">
-                    * Official rates per LTFRB / Municipal Ordinance. Actual fare may vary.
+
+                    {/* Leg 3: Tricycle to destination if needed */}
+                    {!combinedFare.destinationOnHighway && (
+                      <div className="flex items-start justify-between text-xs text-slate-700">
+                        <div className="flex items-start gap-1.5">
+                          <span className="shrink-0 mt-0.5 text-amber-600 font-bold">🛺</span>
+                          <div>
+                            <p className="font-semibold text-slate-800">Tricycle (Last Mile)</p>
+                            <p className="text-[10px] text-slate-500">
+                              From {combinedFare.dropoffStop.name} ({combinedFare.lastMileDistKm.toFixed(1)} km inside)
+                            </p>
+                          </div>
+                        </div>
+                        <span className="font-semibold text-slate-900">
+                          ₱{combinedFare.lastMileTricycleFare.regular.toFixed(2)}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+
+                  <p className="text-[9px] text-slate-400 text-center pt-0.5">
+                    * Jeepney fare based on LTFRB matrix. Tricycle fare based on Naujan Municipal Ordinance.
                   </p>
                 </div>
               )}

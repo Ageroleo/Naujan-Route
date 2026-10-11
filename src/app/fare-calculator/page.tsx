@@ -1,220 +1,315 @@
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
-import { Calculator, ArrowRight, AlertTriangle, Info, ShieldCheck, Scroll } from 'lucide-react';
-import { createClient } from '@/lib/supabase/client';
-import { FALLBACK_TRANSPORT } from '@/lib/data/fallback';
-import { VEHICLE_CONFIG, type TransportMatrix, type VehicleType } from '@/lib/types/database';
-import { VEHICLE_ICONS } from '@/components/icons/TransportIcons';
+import { useState, useMemo } from 'react';
+import { Calculator, ArrowRight, AlertTriangle, Info, ShieldCheck, Scroll, Bus, Compass } from 'lucide-react';
+import { JEEPNEY_STOPS, calculateJeepneyFareBetweenStops, calculateTricycleFare, type JeepneyStop } from '@/lib/data/jeepney-route';
 import NawiTipCard from '@/components/mascot/NawiTipCard';
 
-/** Round to nearest ₱0.25 as per LTFRB rules */
-function roundToNearest25(value: number): number {
-  return Math.round(value * 4) / 4;
-}
-
 export default function FareCalculatorPage() {
-  const [transportData, setTransportData] = useState<TransportMatrix[]>(FALLBACK_TRANSPORT);
-  const [selectedVehicle, setSelectedVehicle] = useState<VehicleType>('tricycle');
-  const [distance, setDistance] = useState(3);
-  const [isSpecialTrip, setIsSpecialTrip] = useState(false);
+  // Mode selection: 'combined' (Jeepney + Tricycle) or 'boat' (Lake Tour)
+  const [mode, setMode] = useState<'combined' | 'boat'>('combined');
+
+  // Combined mode state
+  const [boardingStopIndex, setBoardingStopIndex] = useState<number>(0); // Calapan Pier default
+  const [dropoffStopIndex, setDropoffStopIndex] = useState<number>(8);   // Naujan TP default
+  const [innerDistanceKm, setInnerDistanceKm] = useState<number>(2.0);  // Inner tricycle distance
   const [passengerType, setPassengerType] = useState<'regular' | 'discounted'>('regular');
 
-  useEffect(() => {
-    async function fetchTransport() {
-      try {
-        const supabase = createClient();
-        const { data, error } = await supabase
-          .from('transport_matrix')
-          .select('*');
+  // Boat mode state
+  const [isExtendedBoatTour, setIsExtendedBoatTour] = useState(false);
 
-        if (!error && data && data.length > 0) {
-          setTransportData(data as TransportMatrix[]);
-        }
-      } catch {
-        // Use fallback
-      }
-    }
-    fetchTransport();
-  }, []);
+  // Derived stops
+  const boardingStop: JeepneyStop = JEEPNEY_STOPS[boardingStopIndex] || JEEPNEY_STOPS[0];
+  const dropoffStop: JeepneyStop = JEEPNEY_STOPS[dropoffStopIndex] || JEEPNEY_STOPS[JEEPNEY_STOPS.length - 1];
 
-  const currentVehicle = useMemo(
-    () => transportData.find((t) => t.vehicle_type === selectedVehicle),
-    [transportData, selectedVehicle]
-  );
+  // Calculate combined fare
+  const combinedFare = useMemo(() => {
+    // Jeepney leg (along highway)
+    const jeepney = calculateJeepneyFareBetweenStops(boardingStop, dropoffStop);
+    
+    // Last-mile leg (inside non-highway area)
+    const tricycle = calculateTricycleFare(innerDistanceKm);
 
-  const discountRate = currentVehicle?.discount_percent ?? 0;
-  const hasDiscount = discountRate > 0 && selectedVehicle !== 'boat';
-
-  const fareBreakdown = useMemo(() => {
-    if (!currentVehicle) return null;
-
-    if (selectedVehicle === 'boat') {
-      return {
-        baseFare: currentVehicle.base_fare,
-        extraFare: 0,
-        totalFare: isSpecialTrip ? currentVehicle.special_trip_rate : currentVehicle.base_fare,
-        label: isSpecialTrip ? 'Extended Tour' : 'Standard Tour',
-        discountedTotal: null,
-      };
-    }
-
-    const extraKm = Math.max(0, distance - currentVehicle.base_km);
-    const extraFare = extraKm * currentVehicle.per_km_rate;
-    let totalFare = currentVehicle.base_fare + extraFare;
-
-    // Apply rounding for jeepney (LTFRB rounds to nearest ₱0.25)
-    if (selectedVehicle === 'jeepney') {
-      totalFare = roundToNearest25(totalFare);
-    }
-
-    // Discounted fare (S/E/D — 20% off)
-    let discountedTotal: number | null = null;
-    if (hasDiscount) {
-      const discountMultiplier = 1 - discountRate / 100;
-      const discountedBase = currentVehicle.base_fare * discountMultiplier;
-      const discountedPerKm = currentVehicle.per_km_rate * discountMultiplier;
-      let rawDiscounted = discountedBase + extraKm * discountedPerKm;
-      if (selectedVehicle === 'jeepney') {
-        rawDiscounted = roundToNearest25(rawDiscounted);
-      }
-      discountedTotal = rawDiscounted;
-    }
-
-    const isDiscountedSelected = passengerType === 'discounted' && hasDiscount;
+    const totalRegular = Math.round((jeepney.regular + tricycle.regular) * 100) / 100;
+    const totalDiscounted = Math.round((jeepney.discounted + tricycle.discounted) * 100) / 100;
 
     return {
-      baseFare: currentVehicle.base_fare,
-      extraFare,
-      totalFare: isDiscountedSelected && discountedTotal !== null ? discountedTotal : totalFare,
-      regularTotal: totalFare,
-      discountedTotal,
-      label: isDiscountedSelected ? 'Discounted Fare (S/E/D)' : 'Regular Fare',
+      jeepney,
+      tricycle,
+      totalRegular,
+      totalDiscounted,
     };
-  }, [currentVehicle, distance, isSpecialTrip, selectedVehicle, passengerType, hasDiscount, discountRate]);
+  }, [boardingStop, dropoffStop, innerDistanceKm]);
+
+  // Active total fare depending on passenger type selection
+  const activeFare = passengerType === 'discounted' ? combinedFare.totalDiscounted : combinedFare.totalRegular;
 
   return (
     <div className="px-4 py-6 md:py-8 max-w-3xl mx-auto space-y-5">
       {/* Page Header */}
       <div className="space-y-1 animate-fade-in">
         <div className="flex items-center gap-2">
-          <Calculator size={18} className="text-emerald-600" />
+          <Calculator size={20} className="text-emerald-600" />
           <h2 className="text-lg font-bold font-[family-name:var(--font-display)] text-slate-900">
-            Fare Calculator
+            Route &amp; Fare Calculator
           </h2>
         </div>
         <p className="text-xs text-slate-600">
-          Official transport fares for getting around Naujan
+          Combined Jeepney Highway + Inner Tricycle fare calculation for Naujan
         </p>
       </div>
 
-      {/* Vehicle Selector */}
-      <div className="grid grid-cols-3 gap-2 animate-fade-in-up">
-        {(Object.entries(VEHICLE_CONFIG) as [VehicleType, typeof VEHICLE_CONFIG[VehicleType]][]).map(
-          ([type, config]) => (
-            <button
-              key={type}
-              onClick={() => {
-                setSelectedVehicle(type);
-                setIsSpecialTrip(false);
-                setPassengerType('regular');
-              }}
-              className={`
-                flex flex-col items-center gap-1.5 p-3 rounded-2xl transition-all duration-200
-                ${selectedVehicle === type
-                  ? 'bg-emerald-600 text-white shadow-md'
-                  : 'bg-white border border-slate-200 text-slate-700 hover:bg-slate-50'
-                }
-              `}
-              id={`vehicle-${type}`}
-            >
-              {(() => {
-                const VIcon = VEHICLE_ICONS[type];
-                return VIcon ? <VIcon size={28} /> : <span className="text-2xl">{config.emoji}</span>;
-              })()}
-              <span className="text-xs font-semibold">{config.label}</span>
-            </button>
-          )
-        )}
+      {/* Mode Selector */}
+      <div className="grid grid-cols-2 gap-2 animate-fade-in-up">
+        <button
+          onClick={() => setMode('combined')}
+          className={`flex items-center justify-center gap-2 p-3 rounded-2xl transition-all duration-200 ${
+            mode === 'combined'
+              ? 'bg-emerald-600 text-white shadow-md font-bold'
+              : 'bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 font-semibold'
+          }`}
+          id="mode-combined"
+        >
+          <Bus size={18} />
+          <span className="text-xs">Jeepney + Tricycle</span>
+        </button>
+        <button
+          onClick={() => setMode('boat')}
+          className={`flex items-center justify-center gap-2 p-3 rounded-2xl transition-all duration-200 ${
+            mode === 'boat'
+              ? 'bg-emerald-600 text-white shadow-md font-bold'
+              : 'bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 font-semibold'
+          }`}
+          id="mode-boat"
+        >
+          <Compass size={18} />
+          <span className="text-xs">Bangka Lake Tour</span>
+        </button>
       </div>
 
-      {/* Passenger Type Selector (for vehicles with S/E/D discount) */}
-      {hasDiscount && (
-        <div className="card p-3 animate-fade-in-up" style={{ animationDelay: '0.03s' }}>
-          <p className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider mb-2">
-            Passenger Type
-          </p>
-          <div className="grid grid-cols-2 gap-2">
-            <button
-              onClick={() => setPassengerType('regular')}
-              className={`flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-xl text-xs font-semibold transition-all duration-200 ${
-                passengerType === 'regular'
-                  ? 'bg-emerald-600 text-white shadow-sm'
-                  : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
-              }`}
-              id="passenger-regular"
-            >
-              Regular
-            </button>
-            <button
-              onClick={() => setPassengerType('discounted')}
-              className={`flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-xl text-xs font-semibold transition-all duration-200 ${
-                passengerType === 'discounted'
-                  ? 'bg-sky-600 text-white shadow-sm'
-                  : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
-              }`}
-              id="passenger-discounted"
-            >
-              <ShieldCheck size={13} />
-              Student / Senior / PWD
-            </button>
-          </div>
-          {passengerType === 'discounted' && (
-            <p className="text-[10px] text-sky-600 mt-2 font-medium px-1">
-              {discountRate}% discount per MC 2017-024 — applies everyday including weekends and holidays.
+      {mode === 'combined' ? (
+        <div className="space-y-4">
+          {/* Passenger Type Selector */}
+          <div className="card p-3 animate-fade-in-up" style={{ animationDelay: '0.03s' }}>
+            <p className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider mb-2">
+              Passenger Type
             </p>
-          )}
-        </div>
-      )}
-
-      {/* Distance Slider (not for boat) */}
-      {selectedVehicle !== 'boat' && (
-        <div className="card p-4 space-y-4 animate-fade-in-up" style={{ animationDelay: '0.05s' }}>
-          <div className="flex items-center justify-between">
-            <label className="text-sm font-semibold text-slate-900">Distance</label>
-            <span className="text-lg font-bold text-emerald-600">{distance} km</span>
+            <div className="grid grid-cols-2 gap-2">
+              <button
+                onClick={() => setPassengerType('regular')}
+                className={`flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-xl text-xs font-semibold transition-all duration-200 ${
+                  passengerType === 'regular'
+                    ? 'bg-emerald-600 text-white shadow-sm'
+                    : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+                }`}
+                id="passenger-regular"
+              >
+                Regular
+              </button>
+              <button
+                onClick={() => setPassengerType('discounted')}
+                className={`flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-xl text-xs font-semibold transition-all duration-200 ${
+                  passengerType === 'discounted'
+                    ? 'bg-sky-600 text-white shadow-sm'
+                    : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+                }`}
+                id="passenger-discounted"
+              >
+                <ShieldCheck size={13} />
+                Student / Senior / PWD
+              </button>
+            </div>
+            {passengerType === 'discounted' && (
+              <p className="text-[10px] text-sky-600 mt-2 font-medium px-1">
+                20% discount per LTFRB / Ordinance rules — applies everyday including weekends and holidays.
+              </p>
+            )}
           </div>
-          <input
-            type="range"
-            min={1}
-            max={selectedVehicle === 'jeepney' ? 34 : 10}
-            step={0.5}
-            value={distance}
-            onChange={(e) => setDistance(parseFloat(e.target.value))}
-            className="w-full"
-            id="distance-slider"
-          />
-          <div className="flex justify-between text-[10px] text-slate-400">
-            <span>1 km</span>
-            <span>{selectedVehicle === 'jeepney' ? '17 km' : '5 km'}</span>
-            <span>{selectedVehicle === 'jeepney' ? '34 km' : '10 km'}</span>
+
+          {/* Jeepney Highway Route Stops */}
+          <div className="card p-4 space-y-3 animate-fade-in-up" style={{ animationDelay: '0.05s' }}>
+            <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">
+              1. Jeepney Highway Route (National Highway)
+            </p>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 mb-1">
+                  Boarding Stop (Jeepney)
+                </label>
+                <select
+                  value={boardingStopIndex}
+                  onChange={(e) => {
+                    const val = parseInt(e.target.value);
+                    setBoardingStopIndex(val);
+                    if (val >= dropoffStopIndex) {
+                      setDropoffStopIndex(Math.min(JEEPNEY_STOPS.length - 1, val + 1));
+                    }
+                  }}
+                  className="w-full text-xs font-medium p-2.5 rounded-xl border border-slate-200 bg-white focus:ring-2 focus:ring-emerald-500 outline-none"
+                  id="boarding-stop-select"
+                >
+                  {JEEPNEY_STOPS.map((stop, idx) => (
+                    <option key={stop.name} value={idx}>
+                      {stop.name} (KM {stop.km})
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 mb-1">
+                  Highway Drop-off Stop
+                </label>
+                <select
+                  value={dropoffStopIndex}
+                  onChange={(e) => {
+                    const val = parseInt(e.target.value);
+                    setDropoffStopIndex(val);
+                    if (val <= boardingStopIndex) {
+                      setBoardingStopIndex(Math.max(0, val - 1));
+                    }
+                  }}
+                  className="w-full text-xs font-medium p-2.5 rounded-xl border border-slate-200 bg-white focus:ring-2 focus:ring-emerald-500 outline-none"
+                  id="dropoff-stop-select"
+                >
+                  {JEEPNEY_STOPS.map((stop, idx) => (
+                    <option key={stop.name} value={idx}>
+                      {stop.name} (KM {stop.km})
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+          </div>
+
+          {/* Inner Tricycle Distance */}
+          <div className="card p-4 space-y-3 animate-fade-in-up" style={{ animationDelay: '0.08s' }}>
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">
+                  2. Tricycle Last-Mile Access (Non-Highway Inside)
+                </p>
+                <p className="text-[10px] text-slate-400">
+                  Distance from highway drop-off to inner destination
+                </p>
+              </div>
+              <span className="text-base font-bold text-emerald-600">{innerDistanceKm.toFixed(1)} km</span>
+            </div>
+            <input
+              type="range"
+              min={0}
+              max={10}
+              step={0.5}
+              value={innerDistanceKm}
+              onChange={(e) => setInnerDistanceKm(parseFloat(e.target.value))}
+              className="w-full"
+              id="inner-distance-slider"
+            />
+            <div className="flex justify-between text-[10px] text-slate-400">
+              <span>0 km (on highway)</span>
+              <span>5 km</span>
+              <span>10 km (deep inside)</span>
+            </div>
+          </div>
+
+          {/* Total Combined Fare Result */}
+          <div className="card p-5 space-y-4 animate-fade-in-up" style={{ animationDelay: '0.12s' }}>
+            <div className="text-center space-y-1">
+              <p className="text-xs text-slate-500 uppercase tracking-wider font-semibold">
+                Total Combined Fare ({passengerType === 'discounted' ? 'S/E/D Discounted' : 'Regular'})
+              </p>
+              <p className="text-4xl font-extrabold font-[family-name:var(--font-display)] text-emerald-600">
+                ₱{activeFare.toFixed(2)}
+              </p>
+              <div className="flex items-center justify-center gap-3 pt-1">
+                <span className={`text-xs font-medium px-2.5 py-0.5 rounded-full ${
+                  passengerType === 'regular'
+                    ? 'bg-emerald-100 text-emerald-700 font-bold'
+                    : 'bg-slate-100 text-slate-500'
+                }`}>
+                  Regular: ₱{combinedFare.totalRegular.toFixed(2)}
+                </span>
+                <span className={`text-xs font-medium px-2.5 py-0.5 rounded-full ${
+                  passengerType === 'discounted'
+                    ? 'bg-sky-100 text-sky-700 font-bold'
+                    : 'bg-slate-100 text-slate-500'
+                }`}>
+                  S/E/D: ₱{combinedFare.totalDiscounted.toFixed(2)}
+                </span>
+              </div>
+            </div>
+
+            {/* Fare Breakdown List */}
+            <div className="space-y-2 pt-3 border-t border-slate-200/80">
+              <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">
+                Cost Breakdown
+              </p>
+
+              {/* Jeepney Leg */}
+              <div className="flex items-start justify-between text-xs text-slate-700">
+                <div className="flex items-start gap-1.5">
+                  <span className="shrink-0 mt-0.5 font-bold">🚐</span>
+                  <div>
+                    <p className="font-semibold text-slate-900">Jeepney Highway Fare</p>
+                    <p className="text-[10px] text-slate-500">
+                      {boardingStop.name} → {dropoffStop.name} ({Math.abs(dropoffStop.km - boardingStop.km)} km)
+                    </p>
+                  </div>
+                </div>
+                <span className="font-semibold text-slate-900">
+                  ₱{(passengerType === 'discounted' ? combinedFare.jeepney.discounted : combinedFare.jeepney.regular).toFixed(2)}
+                </span>
+              </div>
+
+              {/* Tricycle Leg */}
+              {innerDistanceKm > 0 && (
+                <div className="flex items-start justify-between text-xs text-slate-700">
+                  <div className="flex items-start gap-1.5">
+                    <span className="shrink-0 mt-0.5 font-bold">🛺</span>
+                    <div>
+                      <p className="font-semibold text-slate-900">Tricycle Inner Access</p>
+                      <p className="text-[10px] text-slate-500">
+                        From {dropoffStop.name} ({innerDistanceKm.toFixed(1)} km inside)
+                      </p>
+                    </div>
+                  </div>
+                  <span className="font-semibold text-slate-900">
+                    ₱{(passengerType === 'discounted' ? combinedFare.tricycle.discounted : combinedFare.tricycle.regular).toFixed(2)}
+                  </span>
+                </div>
+              )}
+            </div>
+
+            {/* Official Source */}
+            <div className="flex gap-2 p-3 rounded-lg bg-emerald-50 border border-emerald-200/60 text-[10px] text-emerald-700">
+              <Scroll size={12} className="shrink-0 mt-0.5" />
+              <p className="leading-relaxed">
+                <span className="font-semibold">Official Fare Matrix:</span> Jeepney rates based on LTFRB Oriental Mindoro Matrix; Tricycle rates based on Naujan Pambayang Ordinansa BLG. 151.
+              </p>
+            </div>
           </div>
         </div>
-      )}
+      ) : (
+        /* Bangka Mode */
+        <div className="card p-5 space-y-4 animate-fade-in-up">
+          <div className="space-y-1">
+            <h3 className="text-sm font-bold text-slate-900">Bangka / Lake Tour Rates</h3>
+            <p className="text-xs text-slate-500">Naujan Lake motorboat Eco-tour tariffs</p>
+          </div>
 
-      {/* Special Trip Toggle */}
-      {selectedVehicle === 'boat' && (
-        <div className="card p-4 animate-fade-in-up" style={{ animationDelay: '0.1s' }}>
-          <label className="flex items-center justify-between cursor-pointer">
+          <label className="flex items-center justify-between cursor-pointer p-3 rounded-xl bg-slate-50 border border-slate-200">
             <div className="space-y-0.5">
-              <p className="text-sm font-semibold text-slate-900">Extended Tour</p>
-              <p className="text-[10px] text-slate-500">2-3 hour extended lake tour</p>
+              <p className="text-sm font-semibold text-slate-900 font-[family-name:var(--font-display)]">
+                Extended Lake Tour (2-3 hrs)
+              </p>
+              <p className="text-[10px] text-slate-500">Includes complete lake perimeter and sanctuary visit</p>
             </div>
             <div className="relative">
               <input
                 type="checkbox"
-                checked={isSpecialTrip}
-                onChange={(e) => setIsSpecialTrip(e.target.checked)}
+                checked={isExtendedBoatTour}
+                onChange={(e) => setIsExtendedBoatTour(e.target.checked)}
                 className="sr-only peer"
                 id="special-trip-toggle"
               />
@@ -222,177 +317,96 @@ export default function FareCalculatorPage() {
               <div className="absolute left-0.5 top-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform peer-checked:translate-x-5" />
             </div>
           </label>
-        </div>
-      )}
 
-      {/* Fare Result */}
-      {fareBreakdown && (
-        <div className="card p-5 space-y-4 animate-fade-in-up" style={{ animationDelay: '0.15s' }}>
-          <div className="text-center space-y-1">
-            <p className="text-xs text-slate-500 uppercase tracking-wider font-semibold">
-              {fareBreakdown.label}
+          <div className="text-center py-4 bg-emerald-50 rounded-xl border border-emerald-200">
+            <p className="text-xs font-semibold text-emerald-800 uppercase tracking-wider">
+              {isExtendedBoatTour ? 'Extended Tour Special Rate' : 'Standard Lake Tour Fare'}
             </p>
-            <p className="text-4xl font-extrabold font-[family-name:var(--font-display)] text-emerald-600">
-              ₱{fareBreakdown.totalFare.toFixed(2)}
+            <p className="text-3xl font-extrabold font-[family-name:var(--font-display)] text-emerald-700 mt-1">
+              ₱{isExtendedBoatTour ? '1,500.00' : '800.00'}
             </p>
-            {/* Show both fares when applicable */}
-            {hasDiscount && fareBreakdown.discountedTotal !== null && fareBreakdown.regularTotal !== undefined && (
-              <div className="flex items-center justify-center gap-3 pt-1">
-                <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${
-                  passengerType === 'regular'
-                    ? 'bg-emerald-100 text-emerald-700'
-                    : 'bg-slate-100 text-slate-500'
-                }`}>
-                  Regular: ₱{fareBreakdown.regularTotal.toFixed(2)}
-                </span>
-                <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${
-                  passengerType === 'discounted'
-                    ? 'bg-sky-100 text-sky-700'
-                    : 'bg-slate-100 text-slate-500'
-                }`}>
-                  S/E/D: ₱{fareBreakdown.discountedTotal.toFixed(2)}
-                </span>
-              </div>
-            )}
+            <p className="text-[10px] text-slate-500 mt-1">
+              Per boat (fits up to 6 passengers) • LGU Tourist Center Tariffs
+            </p>
           </div>
-
-          {/* Breakdown */}
-          <div className="space-y-2 pt-2 border-t border-slate-200/80">
-            <div className="flex justify-between text-xs">
-              <span className="text-slate-600">
-                Base fare {currentVehicle && selectedVehicle !== 'boat' && `(first ${currentVehicle.base_km} km)`}
-              </span>
-              <span className="text-slate-900 font-medium">₱{fareBreakdown.baseFare.toFixed(2)}</span>
-            </div>
-            {fareBreakdown.extraFare > 0 && (
-              <div className="flex justify-between text-xs">
-                <span className="text-slate-600 flex items-center gap-1">
-                  <ArrowRight size={10} />
-                  Additional ({(distance - (currentVehicle?.base_km || 0)).toFixed(1)} km × ₱{currentVehicle?.per_km_rate.toFixed(2)})
-                </span>
-                <span className="text-slate-900 font-medium">₱{fareBreakdown.extraFare.toFixed(2)}</span>
-              </div>
-            )}
-            {passengerType === 'discounted' && hasDiscount && (
-              <div className="flex justify-between text-xs">
-                <span className="text-sky-600 flex items-center gap-1">
-                  <ShieldCheck size={10} />
-                  S/E/D discount ({discountRate}% off)
-                </span>
-                <span className="text-sky-600 font-medium">
-                  −₱{((fareBreakdown.regularTotal ?? fareBreakdown.totalFare) - fareBreakdown.totalFare).toFixed(2)}
-                </span>
-              </div>
-            )}
-          </div>
-
-          {/* Official Source */}
-          {currentVehicle?.fare_source && (
-            <div className="flex gap-2 p-3 rounded-lg bg-emerald-50 border border-emerald-200/60 text-[10px] text-emerald-700">
-              <Scroll size={12} className="shrink-0 mt-0.5" />
-              <p className="leading-relaxed">
-                <span className="font-semibold">Official source:</span>{' '}
-                {currentVehicle.fare_source}
-              </p>
-            </div>
-          )}
-
-          {/* Notes */}
-          {currentVehicle?.notes && (
-            <div className="flex gap-2 p-3 rounded-lg bg-slate-50 border border-slate-200/60 text-[10px] text-slate-500">
-              <Info size={12} className="shrink-0 mt-0.5 text-sky-600" />
-              <p className="leading-relaxed">{currentVehicle.notes}</p>
-            </div>
-          )}
         </div>
       )}
 
-      {/* Jeepney fare table excerpt */}
-      {selectedVehicle === 'jeepney' && (
-        <div className="card p-4 space-y-3 animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
-          <p className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider">
-            Calapan City Pier → Naujan (TP) — Key Stops
-          </p>
-          <div className="overflow-x-auto">
-            <table className="w-full text-xs">
-              <thead>
-                <tr className="border-b border-slate-200">
-                  <th className="text-left py-1.5 font-semibold text-slate-600">KM</th>
-                  <th className="text-left py-1.5 font-semibold text-slate-600">Stop</th>
-                  <th className="text-right py-1.5 font-semibold text-slate-600">Regular</th>
-                  <th className="text-right py-1.5 font-semibold text-slate-600">S/E/D</th>
+      {/* Jeepney fare table reference */}
+      <div className="card p-4 space-y-3 animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
+        <p className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider">
+          Jeepney Official Highway Fare Table (Calapan Pier → Naujan)
+        </p>
+        <div className="overflow-x-auto">
+          <table className="w-full text-xs">
+            <thead>
+              <tr className="border-b border-slate-200">
+                <th className="text-left py-1.5 font-semibold text-slate-600">KM</th>
+                <th className="text-left py-1.5 font-semibold text-slate-600">Stop Name</th>
+                <th className="text-right py-1.5 font-semibold text-slate-600">Regular</th>
+                <th className="text-right py-1.5 font-semibold text-slate-600">S/E/D</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-100">
+              {JEEPNEY_STOPS.map((stop) => (
+                <tr key={stop.name} className="hover:bg-slate-50 transition-colors">
+                  <td className="py-1.5 text-slate-400 tabular-nums">{stop.km}</td>
+                  <td className="py-1.5 text-slate-800 font-medium">{stop.name}</td>
+                  <td className="py-1.5 text-right text-slate-800 tabular-nums">
+                    {stop.regularFare > 0 ? `₱${stop.regularFare.toFixed(2)}` : '—'}
+                  </td>
+                  <td className="py-1.5 text-right text-sky-600 tabular-nums">
+                    {stop.discountedFare > 0 ? `₱${stop.discountedFare.toFixed(2)}` : '—'}
+                  </td>
                 </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100">
-                {[
-                  { km: 0, stop: 'Calapan City Pier', reg: '—', sed: '—' },
-                  { km: 4, stop: 'Lalud / Tawiran', reg: '₱12.00', sed: '₱9.50' },
-                  { km: 7, stop: 'Sta. Isabel', reg: '₱15.50', sed: '₱12.50' },
-                  { km: 10, stop: 'Malad', reg: '₱21.00', sed: '₱16.75' },
-                  { km: 15, stop: 'Bucayao', reg: '₱30.00', sed: '₱24.00' },
-                  { km: 20, stop: 'Tamaraw', reg: '₱40.75', sed: '₱32.75' },
-                  { km: 25, stop: 'Kurba-Naujan', reg: '₱49.75', sed: '₱39.75' },
-                  { km: 30, stop: 'Santiago', reg: '₱58.75', sed: '₱47.00' },
-                  { km: 34, stop: 'Naujan Town Proper', reg: '₱66.00', sed: '₱52.75' },
-                ].map((row) => (
-                  <tr key={row.km} className="hover:bg-slate-50 transition-colors">
-                    <td className="py-1.5 text-slate-400 tabular-nums">{row.km}</td>
-                    <td className="py-1.5 text-slate-800 font-medium">{row.stop}</td>
-                    <td className="py-1.5 text-right text-slate-800 tabular-nums">{row.reg}</td>
-                    <td className="py-1.5 text-right text-sky-600 tabular-nums">{row.sed}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+              ))}
+            </tbody>
+          </table>
         </div>
-      )}
+      </div>
 
-      {/* Tricycle fare table */}
-      {selectedVehicle === 'tricycle' && (
-        <div className="card p-4 space-y-3 animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
-          <p className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider">
-            Tricycle Zonal Fare Matrix — Poblacion / Curva Zone
-          </p>
-          <div className="overflow-x-auto">
-            <table className="w-full text-xs">
-              <thead>
-                <tr className="border-b border-slate-200">
-                  <th className="text-left py-1.5 font-semibold text-slate-600">Distance</th>
-                  <th className="text-right py-1.5 font-semibold text-slate-600">Regular</th>
-                  <th className="text-right py-1.5 font-semibold text-slate-600">Senior/PWD/Student</th>
+      {/* Tricycle zonal fare reference */}
+      <div className="card p-4 space-y-3 animate-fade-in-up" style={{ animationDelay: '0.22s' }}>
+        <p className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider">
+          Tricycle Zonal Fare Matrix — Naujan Ordinansa BLG. 151
+        </p>
+        <div className="overflow-x-auto">
+          <table className="w-full text-xs">
+            <thead>
+              <tr className="border-b border-slate-200">
+                <th className="text-left py-1.5 font-semibold text-slate-600">Inner Distance</th>
+                <th className="text-right py-1.5 font-semibold text-slate-600">Regular</th>
+                <th className="text-right py-1.5 font-semibold text-slate-600">Student/Senior/PWD</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-100">
+              {[
+                { dist: 'First 2.0 km (Base)', reg: '₱15.00', disc: '₱12.00' },
+                { dist: '3.0 km', reg: '₱18.00', disc: '₱14.40' },
+                { dist: '4.0 km', reg: '₱21.00', disc: '₱16.80' },
+                { dist: '5.0 km', reg: '₱24.00', disc: '₱19.20' },
+                { dist: '7.0 km', reg: '₱30.00', disc: '₱24.00' },
+                { dist: '10.0 km', reg: '₱39.00', disc: '₱31.20' },
+              ].map((row) => (
+                <tr key={row.dist} className="hover:bg-slate-50 transition-colors">
+                  <td className="py-1.5 text-slate-800 font-medium">{row.dist}</td>
+                  <td className="py-1.5 text-right text-slate-800 tabular-nums">{row.reg}</td>
+                  <td className="py-1.5 text-right text-sky-600 tabular-nums">{row.disc}</td>
                 </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100">
-                {[
-                  { dist: '2 km', reg: '₱15.00', disc: '₱12.00' },
-                  { dist: '4 km', reg: '₱21.00', disc: '₱16.80' },
-                  { dist: '5 km', reg: '₱24.00', disc: '₱19.20' },
-                  { dist: '7 km', reg: '₱30.00', disc: '₱24.00' },
-                  { dist: '8 km', reg: '₱33.00', disc: '₱26.40' },
-                ].map((row) => (
-                  <tr key={row.dist} className="hover:bg-slate-50 transition-colors">
-                    <td className="py-1.5 text-slate-800 font-medium">{row.dist}</td>
-                    <td className="py-1.5 text-right text-slate-800 tabular-nums">{row.reg}</td>
-                    <td className="py-1.5 text-right text-sky-600 tabular-nums">{row.disc}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-          <p className="text-[10px] text-slate-400 text-center">
-            Pambayang Ordinansa BLG. 151 • Bayan ng Naujan • 2023
-          </p>
+              ))}
+            </tbody>
+          </table>
         </div>
-      )}
+        <p className="text-[10px] text-slate-400 text-center">
+          * Per km rate inside non-highway areas: ₱15.00 for first 2 km + ₱3.00/km for succeedings.
+        </p>
+      </div>
 
       {/* Disclaimer */}
       <div className="flex gap-2 p-3 rounded-xl bg-amber-50 border border-amber-200/60 animate-fade-in-up" style={{ animationDelay: '0.25s' }}>
         <AlertTriangle size={14} className="shrink-0 mt-0.5 text-amber-600" />
         <p className="text-[10px] text-amber-700 leading-relaxed">
-          Fares shown are based on official rates from LTFRB and Municipal Ordinance.
-          Actual fare may vary during holidays or inclement weather.
-          Always confirm the fare with your driver before departure.
+          Fares shown are calculated by combining jeepney national highway tariffs and tricycle inner barangay access rates. Always verify with drivers before departing.
         </p>
       </div>
 

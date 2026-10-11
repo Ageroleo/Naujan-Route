@@ -26,7 +26,7 @@ const FUN_FACTS = [
   "Did you know? Naujan Lake is the largest lake in Mindoro! 🏞️",
   "Fun fact: The Philippine Duck (like me!) is endangered! 🦆💚",
   "Tip: Jeepney fares start at just ₱13! 🚐",
-  "Secret: Corralmo Falls has the best swimming spots! 💦",
+  "Secret: Arangin Falls has the best swimming spots! 💦",
   "Naujan was founded way back in 1607! 📜",
   "Pro tip: Visit waterfalls early morning for the best photos! 📸",
   "There are hot springs here! Perfect after a hike 🥾♨️",

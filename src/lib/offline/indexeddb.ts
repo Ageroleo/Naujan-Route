@@ -3,7 +3,7 @@
 
 import type { EmergencyContact, Attraction, TransportMatrix } from '@/lib/types/database';
 
-const DB_NAME = 'naujan-route-offline';
+const DB_NAME = 'naujan-trail-offline';
 const DB_VERSION = 1;
 
 interface NaujanDB {

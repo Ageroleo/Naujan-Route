@@ -1,4 +1,4 @@
-// TypeScript interfaces matching the Naujan Route database schema
+// TypeScript interfaces matching the Naujan Trail database schema
 
 export interface Attraction {
   id: string;
