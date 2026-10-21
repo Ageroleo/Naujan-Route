@@ -93,19 +93,12 @@ export default function AttractionDetailModal({
             <X size={18} />
           </button>
 
-          {/* Category & Verification Badges */}
+          {/* Category Badge */}
           <div className="absolute top-3 left-3 flex flex-wrap gap-2">
             <div className="badge flex items-center gap-1.5 bg-white/95 backdrop-blur-md text-slate-800 shadow-sm">
               {IconComponent && <IconComponent size={13} style={{ color: config?.color || '#059669' }} />}
               <span className="text-xs font-semibold">{config?.label || 'Attraction'}</span>
             </div>
-
-            {attraction.requiresVerification && (
-              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-amber-500 text-white shadow-sm">
-                <AlertTriangle size={12} strokeWidth={2.5} />
-                <span>Verification Pending</span>
-              </span>
-            )}
           </div>
 
           {/* Title overlay */}
@@ -125,22 +118,6 @@ export default function AttractionDetailModal({
 
         {/* Modal Scrollable Content */}
         <div className="p-5 overflow-y-auto space-y-4">
-          {/* Verification Notice */}
-          {attraction.requiresVerification && (
-            <div className="rounded-2xl border border-amber-300 bg-gradient-to-br from-amber-50 to-orange-50/50 p-3.5 text-xs text-amber-950 space-y-1.5 shadow-2xs">
-              <div className="flex items-center gap-1.5 font-bold text-amber-900">
-                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-amber-500 text-white shadow-xs">
-                  <AlertTriangle size={12} strokeWidth={2.5} />
-                  Local Verification Pending
-                </span>
-              </div>
-              <p className="text-[11px] text-amber-950 leading-relaxed font-medium pl-0.5">
-                {attraction.verificationNote ||
-                  'The exact details, operator, or boundary for this destination require local confirmation with the Municipal Tourism Office.'}
-              </p>
-            </div>
-          )}
-
           {/* Description */}
           {attraction.description && (
             <div className="space-y-1">

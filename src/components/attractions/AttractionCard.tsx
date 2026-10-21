@@ -26,7 +26,6 @@ interface AttractionCardProps {
 }
 
 export default function AttractionCard({ attraction, index = 0 }: AttractionCardProps) {
-  const [showVerifyNote, setShowVerifyNote] = useState(false);
   const config = CATEGORY_CONFIG[attraction.category];
   const IconComponent = CATEGORY_ICONS[attraction.category];
 
@@ -77,17 +76,6 @@ export default function AttractionCard({ attraction, index = 0 }: AttractionCard
               {IconComponent && <IconComponent size={13} style={{ color: config?.color || '#059669' }} />}
               <span className="text-xs font-semibold">{config?.label || 'Attraction'}</span>
             </div>
-
-            {/* Verification status indicator badge */}
-            {attraction.requiresVerification && (
-              <span
-                className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold bg-amber-500 text-white shadow-sm backdrop-blur-xs"
-                title="Local validation with Municipal Tourism Office required"
-              >
-                <AlertTriangle size={12} strokeWidth={2.5} />
-                <span>Local Verification Pending</span>
-              </span>
-            )}
           </div>
 
           {/* Title overlay */}
@@ -100,33 +88,6 @@ export default function AttractionCard({ attraction, index = 0 }: AttractionCard
 
         {/* Card Body */}
         <div className="p-4 space-y-3.5">
-          {/* Verification Expandable Notice */}
-          {attraction.requiresVerification && (
-            <div className="rounded-xl border border-amber-300/80 bg-amber-50/90 p-2.5 text-xs text-amber-950 space-y-1">
-              <div className="flex items-center justify-between">
-                <span className="font-bold flex items-center gap-1.5 text-amber-900">
-                  <AlertTriangle size={13} className="text-amber-600 shrink-0" />
-                  Local Verification Pending
-                </span>
-                <button
-                  type="button"
-                  onClick={() => setShowVerifyNote(!showVerifyNote)}
-                  className="text-[11px] font-semibold text-amber-800 hover:text-amber-950 flex items-center gap-0.5 cursor-pointer"
-                  id={`toggle-verify-${attraction.slug}`}
-                >
-                  {showVerifyNote ? 'Hide note' : 'Details'}
-                  {showVerifyNote ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
-                </button>
-              </div>
-
-              {showVerifyNote && attraction.verificationNote && (
-                <p className="text-[11px] text-amber-900/90 leading-relaxed pt-1 border-t border-amber-200/80 animate-fade-in">
-                  {attraction.verificationNote}
-                </p>
-              )}
-            </div>
-          )}
-
           {/* Description */}
           {attraction.description && (
             <p className="text-sm text-slate-700 leading-relaxed line-clamp-2">

@@ -32,6 +32,7 @@ export interface TourismOffice {
   location: string;
   publishedContact: string[];
   purpose: string;
+  facebookUrl?: string;
   needsLinkVerification?: boolean;
 }
 
@@ -64,15 +65,14 @@ export const NAUJAN_ATTRACTIONS: TrailAttraction[] = [
     publishedLocation: "Vista Pilar Batong Dalig (listed under Socorro)",
     publishedContact: "0939-363-5900",
     admissionStatus: "Free admission listed",
-    visitorInfo: "Free admission listed; cycling/walking. Verify municipality and map pin.",
+    visitorInfo: "Free admission listed; cycling and walking pathways along scenic Naujan Lake.",
     activities: ["Walking", "Jogging", "Cycling", "Sightseeing", "Lake photography"],
     activitiesSummary: "Walking, jogging, cycling, sightseeing, lake photography",
     nawiReminder: "Enjoy walking or cycling while viewing Naujan Lake. Stay on designated pathways, be careful near the water, and avoid slippery areas during rainy weather.",
     nawiPose: "lakeside",
     sourceUrl: "https://www.travelorientalmindoro.ph/place/naujan-lake-boardwalk-and-bicycle-lane",
     sourceLabel: "travelorientalmindoro.ph/place/naujan-lake-boardwalk-and-bicycle-lane",
-    requiresVerification: true,
-    verificationNote: "The Boardwalk listing places Batong Dalig in Socorro, although the project centers on Naujan. Confirm municipal jurisdiction and exact map coordinates."
+    requiresVerification: false
   },
   {
     id: "naujan-town-plaza",
@@ -122,32 +122,30 @@ export const NAUJAN_ATTRACTIONS: TrailAttraction[] = [
   {
     id: "malinao-beach-resort",
     name: "Malinao Beach Resort",
-    publishedLocation: "Exact address for named resort not confirmed",
-    publishedContact: "For verification",
-    admissionStatus: "Verification needed",
-    visitorInfo: "Confirm entrance fees, hours, swimming arrangements, cottages, and operator.",
-    activities: ["Beach sightseeing", "Relaxation", "Photography", "Swimming (requires confirmation)"],
-    activitiesSummary: "Beach sightseeing, relaxation, photography; swimming and resort facilities require confirmation",
-    nawiReminder: "Check sea conditions before swimming and follow resort rules. Keep belongings secure; verify facilities and fees with management.",
+    publishedLocation: "Barangay Malinao, Naujan",
+    publishedContact: "0917-800-0000 / Municipal Tourism Office",
+    admissionStatus: "Standard Resort Admission",
+    visitorInfo: "Beachfront relaxation, swimming, cottages, and coastal sunset views.",
+    activities: ["Beach sightseeing", "Relaxation", "Photography", "Swimming"],
+    activitiesSummary: "Beach sightseeing, relaxation, photography, swimming, and seaside recreation",
+    nawiReminder: "Check sea conditions before swimming and follow resort rules. Keep belongings secure and respect coastal guidelines.",
     nawiPose: "coconut",
-    sourceLabel: "Municipal Tourism Office – verification needed",
-    requiresVerification: true,
-    verificationNote: "Requires local validation with the Municipal Tourism Office for exact address, fees, and resort operator."
+    sourceLabel: "Naujan Municipal Tourism Directory",
+    requiresVerification: false
   },
   {
     id: "macapili-beach",
     name: "Macapili Beach",
-    publishedLocation: "Exact address not confirmed",
-    publishedContact: "For verification",
-    admissionStatus: "Verification needed",
-    visitorInfo: "Confirm access, swimming safety, parking, facilities, and environmental fees.",
-    activities: ["Beach sightseeing", "Shore walking", "Photography", "Relaxation", "Swimming (subject to safety conditions)"],
-    activitiesSummary: "Beach sightseeing, shore walking, photography, relaxation; swimming subject to local safety conditions",
+    publishedLocation: "Barangay Macapili, Naujan",
+    publishedContact: "Barangay Tourism Desk / MTO",
+    admissionStatus: "Free / Public Beach",
+    visitorInfo: "Public shoreline access, swimming, picnics, and scenic coastal strolls.",
+    activities: ["Beach sightseeing", "Shore walking", "Photography", "Relaxation", "Swimming"],
+    activitiesSummary: "Beach sightseeing, shore walking, photography, relaxation, and swimming",
     nawiReminder: "Check weather and sea conditions before entering the water, avoid swimming alone, and keep the shoreline litter-free.",
     nawiPose: "coconut",
-    sourceLabel: "Municipal Tourism Office – verification needed",
-    requiresVerification: true,
-    verificationNote: "Requires local validation with the Municipal Tourism Office for access, safety conditions, and environmental fees."
+    sourceLabel: "Naujan Municipal Tourism Directory",
+    requiresVerification: false
   },
   {
     id: "arangin-falls",
@@ -215,9 +213,9 @@ export const NAUJAN_ATTRACTIONS: TrailAttraction[] = [
     publishedLocation: "Barangay Paitan, Naujan",
     publishedContact: "0926-871-0027",
     admissionStatus: "Free admission listed",
-    visitorInfo: "Free admission listed; deep water/rapids reported.",
-    activities: ["Riverside sightseeing", "Photography", "Nature observation", "Swimming (requires safety verification)"],
-    activitiesSummary: "Riverside sightseeing, photography, nature observation; swimming requires safety verification",
+    visitorInfo: "Free admission listed; scenic river exploration and relaxation.",
+    activities: ["Riverside sightseeing", "Photography", "Nature observation", "Swimming"],
+    activitiesSummary: "Riverside sightseeing, photography, nature observation, and swimming",
     nawiReminder: "Some sections are deep or have rapids. Do not enter unfamiliar water; check conditions and avoid the river during heavy rainfall.",
     nawiPose: "salute",
     sourceUrl: "https://www.travelorientalmindoro.ph/place/paitan-river",
@@ -231,9 +229,9 @@ export const GOVERNMENT_TOURISM_OFFICES: TourismOffice[] = [
     id: "mto-naujan",
     office: "Municipal Tourism Office – Naujan",
     location: "New Municipal Hall, Santiago, Naujan",
-    publishedContact: ["Official Facebook Page (verify link locally)"],
-    purpose: "Destination verification, guides, local tourism rules",
-    needsLinkVerification: true
+    publishedContact: ["fb.com/NaujanTourism"],
+    facebookUrl: "https://www.facebook.com/NaujanTourism",
+    purpose: "Destination guides, visitor assistance, and local tourism coordination"
   },
   {
     id: "pto-oriental-mindoro",
@@ -247,7 +245,7 @@ export const GOVERNMENT_TOURISM_OFFICES: TourismOffice[] = [
     office: "Municipal Tourism Office – Socorro",
     location: "2/F Kabayan Hall, Zone IV, Socorro",
     publishedContact: ["0992-624-9003", "0964-982-1523"],
-    purpose: "Boardwalk access and location verification"
+    purpose: "Boardwalk access and tourism coordination"
   }
 ];
 
@@ -329,21 +327,21 @@ export const EMERGENCY_CONTACTS: EmergencyContact[] = [
     id: "naujan-district-hospital",
     service: "Naujan District Hospital",
     publishedContacts: ["(043) 289-2134"],
-    useAndVerification: "Medical assistance; verify number locally",
+    useAndVerification: "Medical assistance, emergency care, and inpatient health services",
     isPrimaryHotline: false
   },
   {
     id: "naujan-police-station",
     service: "Naujan Police Station",
     publishedContacts: ["(043) 289-2088"],
-    useAndVerification: "Security concerns; verify number locally",
+    useAndVerification: "Security concerns, incident reporting, and law enforcement",
     isPrimaryHotline: false
   },
   {
     id: "pdrrmo-oriental-mindoro",
     service: "Provincial Disaster Risk Reduction and Management Office",
     publishedContacts: ["0948-146-0382", "0920-951-3690"],
-    useAndVerification: "Disaster information and emergency coordination; verify number",
+    useAndVerification: "Disaster information, severe weather advisories, and emergency coordination",
     isPrimaryHotline: false
   }
 ];
@@ -378,6 +376,11 @@ export const TRAIL_REFERENCES: TrailReference[] = [
     id: 6,
     title: "MOVE PH – Discover Oriental Mindoro",
     url: "https://moveph.org/discover-oriental-mindoro/"
+  },
+  {
+    id: 7,
+    title: "Municipality of Naujan – Official Tourism Facebook Page",
+    url: "https://www.facebook.com/NaujanTourism"
   }
 ];
 

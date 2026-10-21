@@ -234,7 +234,6 @@ export default function MapPageClient() {
   const [userLocation, setUserLocation] = useState<[number, number] | null>(null);
   const [fareExpanded, setFareExpanded] = useState(true);
   const [spotInfoExpanded, setSpotInfoExpanded] = useState(true);
-  const [showVerifyNote, setShowVerifyNote] = useState(false);
 
   // Routing state — now supports multiple alternatives
   const [allRoutes, setAllRoutes] = useState<RouteResult[]>([]);
@@ -553,11 +552,6 @@ export default function MapPageClient() {
                   <div className="space-y-2 min-w-[210px] max-w-[260px] p-0.5">
                     <div className="flex items-start justify-between gap-1.5">
                       <h3 className="font-bold text-sm text-slate-900 leading-tight">{attraction.name}</h3>
-                      {attraction.requiresVerification && (
-                        <span className="shrink-0 text-[9px] bg-amber-100 text-amber-900 font-extrabold px-1.5 py-0.5 rounded-full border border-amber-300">
-                          Verify
-                        </span>
-                      )}
                     </div>
                     {attraction.description && (
                       <p className="text-xs text-slate-600 line-clamp-2">
@@ -763,15 +757,7 @@ export default function MapPageClient() {
                 })()}
               </div>
               <div className="min-w-0">
-                <div className="flex items-center gap-2">
-                  <h3 className="text-sm font-bold text-slate-900 truncate">{targetAttraction.name}</h3>
-                  {targetAttraction.requiresVerification && (
-                    <span className="shrink-0 inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-500 text-white shadow-2xs">
-                      <AlertTriangle size={11} strokeWidth={2.5} />
-                      Local Verification Pending
-                    </span>
-                  )}
-                </div>
+                <h3 className="text-sm font-bold text-slate-900 truncate">{targetAttraction.name}</h3>
                 <p className="text-[11px] text-slate-500 truncate">
                   {targetAttraction.publishedLocation || (targetAttraction.barangay ? `Brgy. ${targetAttraction.barangay}, Naujan` : 'Naujan')}
                 </p>
@@ -787,30 +773,6 @@ export default function MapPageClient() {
 
           {spotInfoExpanded && (
             <div className="px-3.5 pb-3.5 space-y-3 border-t border-slate-100 animate-fade-in">
-              {/* Verification status expandable note */}
-              {targetAttraction.requiresVerification && (
-                <div className="rounded-xl border border-amber-300 bg-amber-50/90 p-2.5 text-xs text-amber-950 space-y-1">
-                  <div className="flex items-center justify-between">
-                    <span className="font-bold flex items-center gap-1 text-amber-900">
-                      <AlertTriangle size={13} className="text-amber-600 shrink-0" />
-                      Local Verification Pending
-                    </span>
-                    <button
-                      type="button"
-                      onClick={() => setShowVerifyNote(!showVerifyNote)}
-                      className="text-[11px] font-semibold text-amber-800 hover:text-amber-950 underline cursor-pointer"
-                    >
-                      {showVerifyNote ? 'Hide details' : 'View note'}
-                    </button>
-                  </div>
-                  {showVerifyNote && targetAttraction.verificationNote && (
-                    <p className="text-[11px] text-amber-900/90 leading-relaxed pt-1 border-t border-amber-200">
-                      {targetAttraction.verificationNote}
-                    </p>
-                  )}
-                </div>
-              )}
-
               {/* Description */}
               {targetAttraction.description && (
                 <p className="text-xs text-slate-700 leading-relaxed">

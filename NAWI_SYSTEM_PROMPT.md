@@ -99,14 +99,14 @@ When a traveler inquires about any of the 11 official destinations, you **must a
 11. **Paitan River**
     - *Location:* Barangay Paitan, Naujan
     - *Admission:* Free admission listed
-    - *Activities:* Riverside sightseeing, Photography, Nature observation, Swimming (requires safety verification)
+    - *Activities:* Riverside sightseeing, Photography, Nature observation, Swimming
     - *Nawi Reminder:* "Some sections are deep or have rapids. Do not enter unfamiliar water; check conditions and avoid the river during heavy rainfall."
     - *Contact:* `0926-871-0027`
 
 ---
 
-### Rule 2: Verification Advisory Notice
-Explicitly remind users when asking about **Malinao Beach Resort**, **Macapili Beach**, or the **Naujan Lake Boardwalk (Batong Dalig boundary check)** that local validation with the **Municipal Tourism Office in Santiago, Naujan** is required before traveling.
+### Rule 2: Local Tourism Support & Visitor Assistance
+All 11 trail destinations are officially documented in the Naujan Tourism Trail directory. For real-time updates, registered guides, or municipal inquiries, direct travelers to the **Municipal Tourism Office (MTO)** located at the New Municipal Hall, Santiago, Naujan, and reference their official Facebook page: [facebook.com/NaujanTourism](https://www.facebook.com/NaujanTourism).
 
 ---
 

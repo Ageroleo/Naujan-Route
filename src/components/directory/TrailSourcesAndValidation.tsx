@@ -2,69 +2,22 @@
 
 import React from 'react';
 import {
-  AlertTriangle,
   ExternalLink,
   BookOpen,
-  MapPin,
-  ShieldAlert,
-  FileCheck2,
   CheckCircle2,
 } from 'lucide-react';
 import {
   TRAIL_REFERENCES,
-  VALIDATION_PRIORITY_NOTE,
   type TrailReference,
 } from '@/data/naujanTrailData';
 
 export default function TrailSourcesAndValidation() {
-  const boardwalkJurisdictionNote =
-    'The Boardwalk listing places Batong Dalig in Socorro, although the project centers on Naujan. Confirm municipal jurisdiction and exact map coordinates with the Municipal Tourism Offices of Naujan and Socorro before official publication.';
-
   return (
     <div
       className="space-y-6 pt-6 border-t border-slate-200/90"
       id="trail-sources-and-validation"
     >
-      {/* ── 1. Validation Priority Notice Callout Box ── */}
-      <div className="rounded-3xl border-2 border-amber-300 bg-gradient-to-br from-amber-50/95 via-orange-50/40 to-amber-50/70 p-5 sm:p-6 shadow-xs text-amber-950 space-y-4">
-        <div className="flex items-start gap-3">
-          <div className="w-10 h-10 rounded-2xl bg-amber-200/80 border border-amber-300 flex items-center justify-center text-amber-800 shrink-0 shadow-xs">
-            <ShieldAlert size={22} className="text-amber-700" />
-          </div>
-          <div className="space-y-1 min-w-0">
-            <div className="flex flex-wrap items-center gap-2">
-              <span className="text-[11px] font-extrabold uppercase tracking-wider text-amber-800 bg-amber-200/70 px-2.5 py-0.5 rounded-full">
-                Pre-Deployment Checklist
-              </span>
-              <span className="text-xs font-bold text-amber-700">
-                Official Validation Notice
-              </span>
-            </div>
-            <h3 className="text-base sm:text-lg font-bold font-[family-name:var(--font-display)] text-amber-950 leading-tight">
-              Validation Priority Guidelines
-            </h3>
-          </div>
-        </div>
-
-        {/* Priority Note Body */}
-        <p className="text-xs sm:text-sm font-medium text-amber-900 leading-relaxed bg-white/70 rounded-2xl p-3.5 border border-amber-200/80 shadow-2xs">
-          <strong>Mandatory Verification: </strong>
-          {VALIDATION_PRIORITY_NOTE}
-        </p>
-
-        {/* Boardwalk Jurisdiction Check Note */}
-        <div className="flex items-start gap-2.5 rounded-2xl bg-amber-100/70 p-3.5 border border-amber-200 text-xs text-amber-900 leading-relaxed">
-          <MapPin size={16} className="text-amber-700 shrink-0 mt-0.5" />
-          <div>
-            <strong className="font-bold text-amber-950">
-              Boardwalk Jurisdiction Check:{' '}
-            </strong>
-            <span>{boardwalkJurisdictionNote}</span>
-          </div>
-        </div>
-      </div>
-
-      {/* ── 2. Official Reference Sources ── */}
+      {/* ── Official Reference Sources ── */}
       <div className="space-y-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">

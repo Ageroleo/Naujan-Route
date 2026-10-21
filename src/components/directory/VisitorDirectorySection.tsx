@@ -152,12 +152,6 @@ export default function VisitorDirectorySection() {
                       <Building2 size={12} />
                       {isNaujanMTO ? 'Host Municipality' : 'Regional Tourism'}
                     </span>
-
-                    {office.needsLinkVerification && (
-                      <span className="inline-flex items-center gap-0.5 text-[10px] font-bold text-amber-700 bg-amber-50 px-2 py-0.5 rounded-full border border-amber-200">
-                        Verify Link
-                      </span>
-                    )}
                   </div>
 
                   {/* Office Name */}
@@ -191,19 +185,22 @@ export default function VisitorDirectorySection() {
 
                   {isNaujanMTO ? (
                     <div className="space-y-2">
-                      <div className="flex items-center justify-between gap-2 p-2 rounded-xl bg-emerald-50 border border-emerald-200/80 text-xs text-emerald-900">
-                        <span className="font-semibold flex items-center gap-1.5">
-                          <Share2 size={13} className="text-emerald-700 shrink-0" />
-                          Official Facebook Page
+                      <a
+                        href={office.facebookUrl || 'https://www.facebook.com/NaujanTourism'}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center justify-between gap-2 p-3 rounded-xl bg-gradient-to-r from-blue-50 to-indigo-50/60 hover:from-blue-100 hover:to-indigo-100/80 border border-blue-200/90 text-xs text-blue-950 transition-all duration-200 group shadow-2xs hover:shadow-xs active:scale-[0.99] cursor-pointer"
+                        id="naujan-mto-facebook-link"
+                        title="Visit Naujan Tourism Official Facebook Page"
+                      >
+                        <span className="font-bold flex items-center gap-2 text-blue-900 group-hover:text-blue-950">
+                          <ExternalLink size={14} className="text-blue-600 shrink-0 group-hover:scale-110 transition-transform" />
+                          <span>facebook.com/NaujanTourism</span>
                         </span>
-                        <span className="text-[10px] font-bold text-emerald-800 bg-emerald-200/70 px-2 py-0.5 rounded-full">
-                          LGU Portal
+                        <span className="text-[10px] font-extrabold text-blue-700 bg-blue-200/70 group-hover:bg-blue-600 group-hover:text-white px-2.5 py-0.5 rounded-full transition-colors flex items-center gap-1">
+                          Official Page ↗
                         </span>
-                      </div>
-                      <p className="text-[11px] text-slate-500 leading-snug flex items-center gap-1">
-                        <Info size={11} className="text-amber-600 shrink-0" />
-                        <span>Verify current direct link with Naujan Municipal Hall in Santiago.</span>
-                      </p>
+                      </a>
                     </div>
                   ) : (
                     <div className="flex flex-wrap gap-2">

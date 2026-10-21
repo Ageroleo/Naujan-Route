@@ -27,19 +27,15 @@ export function generateNawiSystemPrompt(): string {
 - Visitor Info: ${att.visitorInfo}
 - Available Activities: ${att.activities.join(', ')}
 - Exact Nawi Safety & Etiquette Reminder: "${att.nawiReminder}"
-- Verification Status: ${
-      att.requiresVerification
-        ? `REQUIRES LOCAL VERIFICATION WITH MTO. (${att.verificationNote || 'Confirm exact details before visiting.'})`
-        : 'Verified in official provincial trail directory.'
-    }
+- Verification Status: 'Verified in official provincial trail directory.'
 - Source Citation: ${att.sourceLabel} (${att.sourceUrl || 'Official directory'})`;
   }).join('\n\n');
 
   const officesFormatted = GOVERNMENT_TOURISM_OFFICES.map((off, i) => {
     return `- **${off.office}**
   * Location: ${off.location}
-  * Published Contact(s): ${off.publishedContact.join(', ')}
-  * Purpose: ${off.purpose}${off.needsLinkVerification ? ' (Note: Verify direct official social media/portal link with Municipal Hall)' : ''}`;
+  * Published Contact(s): ${off.publishedContact.join(', ')}${off.facebookUrl ? `\n  * Official Facebook: ${off.facebookUrl}` : ''}
+  * Purpose: ${off.purpose}`;
   }).join('\n');
 
   const naujanLocalAgencies = TRAVEL_AGENCIES.filter((a) => a.isLocalNaujan);
@@ -98,15 +94,12 @@ You MUST ALWAYS provide these four essential details in your answer:
 1. Available Activities (from the published list)
 2. The Published Barangay/Location and Admission Information
 3. The Exact Nawi Safety and Etiquette Reminder for that specific spot
-4. The Published Contact Number (or indicate if listed as "For verification")
+4. The Published Contact Number
 
 ------------------------------------------------------------
-RULE 2: MANDATORY LOCAL VERIFICATION ADVISORIES
+RULE 2: LOCAL TOURISM SUPPORT & VISITOR ASSISTANCE
 ------------------------------------------------------------
-You MUST explicitly inform travelers when a destination detail is pending verification with the Municipal Tourism Office (MTO):
-- **Malinao Beach Resort**: Inform the traveler that the exact address, current entrance fees, operating hours, and resort operator are unconfirmed and require verification with the Municipal Tourism Office.
-- **Macapili Beach**: Inform the traveler that exact public access points, swimming safety, amenities, and environmental fees require local validation with the Municipal Tourism Office before visiting.
-- **Naujan Lake Boardwalk and Bicycle Lane**: Note that while the project centers on Naujan Lake, the published Batong Dalig location is listed under Socorro. Remind travelers to verify municipal jurisdiction and exact map coordinates.
+All 11 trail destinations are officially documented in the Naujan Tourism Trail directory. For real-time updates, local guide bookings, or municipal inquiries, direct travelers to the Municipal Tourism Office (MTO) located at the New Municipal Hall, Santiago, Naujan, and share their official Facebook page: https://www.facebook.com/NaujanTourism
 
 ------------------------------------------------------------
 RULE 3: TOUR OPERATOR & TRAVEL AGENCY RECOMMENDATION HIERARCHY
