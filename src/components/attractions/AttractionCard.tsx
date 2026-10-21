@@ -1,9 +1,24 @@
 'use client';
 
+import { useState } from 'react';
 import Link from 'next/link';
-import { MapPin, Clock, DollarSign, Navigation } from 'lucide-react';
+import {
+  MapPin,
+  Clock,
+  DollarSign,
+  Navigation,
+  Phone,
+  PhoneOff,
+  AlertTriangle,
+  ExternalLink,
+  Sparkles,
+  Info,
+  ChevronDown,
+  ChevronUp,
+} from 'lucide-react';
 import { CATEGORY_CONFIG, type Attraction } from '@/lib/types/database';
 import { CATEGORY_ICONS } from '@/components/icons/CategoryIcons';
+import NawiReminderBanner from '@/components/mascot/NawiReminderBanner';
 
 interface AttractionCardProps {
   attraction: Attraction;
@@ -11,23 +26,39 @@ interface AttractionCardProps {
 }
 
 export default function AttractionCard({ attraction, index = 0 }: AttractionCardProps) {
+  const [showVerifyNote, setShowVerifyNote] = useState(false);
   const config = CATEGORY_CONFIG[attraction.category];
   const IconComponent = CATEGORY_ICONS[attraction.category];
 
+  // Activities array handling
+  const activitiesList: string[] = Array.isArray(attraction.activities)
+    ? (attraction.activities as (string | { name: string })[]).map((a) =>
+        typeof a === 'string' ? a : a.name
+      )
+    : [];
+
+  // Determine if published contact is a phone number
+  const rawContact = attraction.publishedContact || attraction.contact_number;
+  const isPhoneNumber =
+    rawContact &&
+    rawContact !== 'For verification' &&
+    /[0-9]/.test(rawContact);
+
   return (
-    <Link
-      href={`/map?attraction=${attraction.slug}`}
-      className="block"
+    <article
+      className="card animate-fade-in-up opacity-0 transition-all duration-300 hover:ring-2 hover:ring-emerald-500/30 flex flex-col justify-between"
+      style={{ animationDelay: `${index * 0.07}s`, animationFillMode: 'forwards' }}
       id={`attraction-${attraction.slug}`}
     >
-      <article
-        className={`card animate-fade-in-up opacity-0 cursor-pointer hover:ring-2 hover:ring-emerald-500/30 transition-all duration-300`}
-        style={{ animationDelay: `${index * 0.07}s`, animationFillMode: 'forwards' }}
-      >
-        {/* Cover Image */}
-        <div className="relative h-44 overflow-hidden bg-slate-100">
+      <div>
+        {/* Cover Image & Category Badges */}
+        <Link
+          href={`/map?attraction=${attraction.slug}`}
+          className="relative h-48 block overflow-hidden bg-slate-100 group"
+          aria-label={`View ${attraction.name} on map`}
+        >
           <div
-            className="absolute inset-0 bg-gradient-to-br from-slate-200 to-slate-100"
+            className="absolute inset-0 bg-gradient-to-br from-slate-200 to-slate-100 transition-transform duration-500 group-hover:scale-105"
             style={{
               backgroundImage: attraction.cover_image
                 ? `url(${encodeURI(attraction.cover_image)})`
@@ -37,57 +68,199 @@ export default function AttractionCard({ attraction, index = 0 }: AttractionCard
             }}
           />
           {/* Gradient overlay for text readability */}
-          <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
 
+          {/* Badges Top Bar */}
+          <div className="absolute top-3 inset-x-3 flex items-start justify-between gap-2">
+            {/* Category badge */}
+            <div className="badge flex items-center gap-1 bg-white/95 backdrop-blur-md text-slate-800 shadow-xs">
+              {IconComponent && <IconComponent size={13} style={{ color: config?.color || '#059669' }} />}
+              <span className="text-xs font-semibold">{config?.label || 'Attraction'}</span>
+            </div>
 
-          {/* Category badge */}
-          <div
-            className="absolute top-3 right-3 badge flex items-center gap-1 bg-white/90 backdrop-blur-sm text-slate-800 shadow-xs"
-          >
-            {IconComponent && <IconComponent size={13} style={{ color: config.color }} />}
-            <span className="text-xs font-semibold">{config.label}</span>
+            {/* Verification status indicator badge */}
+            {attraction.requiresVerification && (
+              <span
+                className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold bg-amber-500 text-white shadow-sm backdrop-blur-xs"
+                title="Local validation with Municipal Tourism Office required"
+              >
+                <AlertTriangle size={12} strokeWidth={2.5} />
+                <span>Local Verification Pending</span>
+              </span>
+            )}
           </div>
 
           {/* Title overlay */}
           <div className="absolute bottom-0 left-0 right-0 p-4">
-            <h3 className="text-lg font-bold font-[family-name:var(--font-display)] leading-tight text-white drop-shadow-lg">
+            <h3 className="text-lg font-bold font-[family-name:var(--font-display)] leading-tight text-white drop-shadow-md group-hover:text-emerald-300 transition-colors">
               {attraction.name}
             </h3>
           </div>
-        </div>
+        </Link>
 
-        {/* Content */}
-        <div className="p-4 space-y-3">
+        {/* Card Body */}
+        <div className="p-4 space-y-3.5">
+          {/* Verification Expandable Notice */}
+          {attraction.requiresVerification && (
+            <div className="rounded-xl border border-amber-300/80 bg-amber-50/90 p-2.5 text-xs text-amber-950 space-y-1">
+              <div className="flex items-center justify-between">
+                <span className="font-bold flex items-center gap-1.5 text-amber-900">
+                  <AlertTriangle size={13} className="text-amber-600 shrink-0" />
+                  Local Verification Pending
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setShowVerifyNote(!showVerifyNote)}
+                  className="text-[11px] font-semibold text-amber-800 hover:text-amber-950 flex items-center gap-0.5 cursor-pointer"
+                  id={`toggle-verify-${attraction.slug}`}
+                >
+                  {showVerifyNote ? 'Hide note' : 'Details'}
+                  {showVerifyNote ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
+                </button>
+              </div>
+
+              {showVerifyNote && attraction.verificationNote && (
+                <p className="text-[11px] text-amber-900/90 leading-relaxed pt-1 border-t border-amber-200/80 animate-fade-in">
+                  {attraction.verificationNote}
+                </p>
+              )}
+            </div>
+          )}
+
           {/* Description */}
-          <p className="text-sm text-slate-700 leading-relaxed line-clamp-2">
-            {attraction.description}
-          </p>
+          {attraction.description && (
+            <p className="text-sm text-slate-700 leading-relaxed line-clamp-2">
+              {attraction.description}
+            </p>
+          )}
 
-          {/* Meta Info */}
-          <div className="flex flex-wrap gap-3 text-xs text-slate-500">
-            {attraction.barangay && (
-              <span className="flex items-center gap-1">
-                <MapPin size={12} className="text-emerald-600" />
-                Brgy. {attraction.barangay}
-              </span>
-            )}
-            <span className="flex items-center gap-1">
-              <DollarSign size={12} className="text-amber-600" />
-              {attraction.entrance_fee}
-            </span>
-            <span className="flex items-center gap-1">
-              <Clock size={12} className="text-sky-600" />
-              {attraction.opening_hours}
-            </span>
+          {/* Location & Contact Details */}
+          <div className="space-y-1.5 text-xs text-slate-600 bg-slate-50/80 rounded-xl p-3 border border-slate-200/70">
+            {/* Published / Barangay Location */}
+            <div className="flex items-start gap-1.5">
+              <MapPin size={14} className="text-emerald-600 shrink-0 mt-0.5" />
+              <div className="min-w-0">
+                <span className="font-semibold text-slate-800">Location: </span>
+                <span className="text-slate-700">
+                  {attraction.publishedLocation || (attraction.barangay ? `Brgy. ${attraction.barangay}, Naujan` : 'Naujan, Oriental Mindoro')}
+                </span>
+              </div>
+            </div>
+
+            {/* Visitor Info & Fees */}
+            <div className="flex items-start gap-1.5">
+              <Info size={14} className="text-sky-600 shrink-0 mt-0.5" />
+              <div className="min-w-0">
+                <span className="font-semibold text-slate-800">Visitor Info: </span>
+                <span className="text-slate-700">
+                  {attraction.visitorInfo || (
+                    <>
+                      <span>{attraction.admissionStatus || attraction.entrance_fee}</span>
+                      {attraction.opening_hours && ` • ${attraction.opening_hours}`}
+                    </>
+                  )}
+                </span>
+              </div>
+            </div>
+
+            {/* Contact row */}
+            <div className="flex flex-wrap items-center gap-2 pt-1">
+              <span className="font-semibold text-slate-800">Contact:</span>
+              {isPhoneNumber ? (
+                <a
+                  href={`tel:${rawContact!.replace(/[^\d+]/g, '')}`}
+                  className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-emerald-600 text-white text-xs font-semibold hover:bg-emerald-700 transition-all shadow-2xs active:scale-95"
+                  id={`call-${attraction.slug}`}
+                >
+                  <Phone size={11} strokeWidth={2.5} />
+                  <span>{rawContact}</span>
+                </a>
+              ) : rawContact === 'For verification' ? (
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-medium bg-slate-200/80 text-slate-600">
+                  <PhoneOff size={11} />
+                  For verification
+                </span>
+              ) : (
+                <span className="text-[11px] text-slate-500">Contact MTO</span>
+              )}
+
+              {/* Admission Pill */}
+              {(attraction.admissionStatus || attraction.entrance_fee) && (
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-medium bg-emerald-100/70 text-emerald-800 ml-auto">
+                  <DollarSign size={11} className="text-emerald-700" />
+                  {attraction.admissionStatus || attraction.entrance_fee}
+                </span>
+              )}
+            </div>
           </div>
 
-          {/* View on Map CTA */}
-          <div className="flex items-center gap-1.5 text-xs font-semibold text-emerald-600 pt-1">
-            <Navigation size={12} />
-            <span>Get Directions &amp; Fare Estimate</span>
-          </div>
+          {/* Available Activities Chips */}
+          {activitiesList.length > 0 && (
+            <div className="space-y-1.5 pt-0.5">
+              <div className="flex items-center gap-1 text-[11px] font-bold uppercase tracking-wider text-slate-500">
+                <Sparkles size={11} className="text-emerald-600" />
+                <span>Available Activities</span>
+              </div>
+              <div className="flex flex-wrap gap-1.5">
+                {activitiesList.map((activity, idx) => (
+                  <span
+                    key={idx}
+                    className="rounded-full px-3 py-1 text-xs font-medium bg-emerald-50 text-emerald-800 border border-emerald-200/80 hover:bg-emerald-100 transition-colors shadow-2xs"
+                  >
+                    {activity}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Nawi's Reminder Callout Banner */}
+          {attraction.nawiReminder && (
+            <div
+              className="pt-1 cursor-pointer"
+              onClick={() => {
+                window.dispatchEvent(
+                  new CustomEvent('nawi-select-attraction', { detail: attraction })
+                );
+              }}
+            >
+              <NawiReminderBanner
+                reminder={attraction.nawiReminder}
+                attractionName={attraction.name}
+                pose={attraction.nawiPose}
+              />
+            </div>
+          )}
+
+          {/* Official Listing Source Link */}
+          {attraction.sourceUrl && (
+            <div className="pt-0.5">
+              <a
+                href={attraction.sourceUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1.5 text-xs font-semibold text-emerald-700 hover:text-emerald-800 hover:underline transition-colors"
+                id={`source-${attraction.slug}`}
+              >
+                <ExternalLink size={12} className="shrink-0" />
+                <span>Official Listing (Travel Oriental Mindoro)</span>
+              </a>
+            </div>
+          )}
         </div>
-      </article>
-    </Link>
+      </div>
+
+      {/* Card Footer CTA */}
+      <div className="p-4 pt-1 border-t border-slate-100 mt-2">
+        <Link
+          href={`/map?attraction=${attraction.slug}`}
+          className="w-full flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition-all shadow-xs active:scale-[0.98]"
+          id={`directions-${attraction.slug}`}
+        >
+          <Navigation size={13} strokeWidth={2.5} />
+          <span>Get Directions &amp; Fare Estimate</span>
+        </Link>
+      </div>
+    </article>
   );
 }

@@ -1,4 +1,5 @@
 // TypeScript interfaces matching the Naujan Trail database schema
+import type { NawiPose } from '@/data/naujanTrailData';
 
 export interface Attraction {
   id: string;
@@ -15,8 +16,20 @@ export interface Attraction {
   cover_image: string | null;
   is_featured: boolean;
   created_at: string;
-  activities?: Activity[];
+  activities?: string[] | Activity[];
   photos?: Photo[];
+  // Digital Tourism Trail fields
+  publishedLocation?: string;
+  publishedContact?: string;
+  admissionStatus?: string;
+  visitorInfo?: string;
+  activitiesSummary?: string;
+  nawiReminder?: string;
+  sourceUrl?: string;
+  sourceLabel?: string;
+  requiresVerification?: boolean;
+  verificationNote?: string;
+  nawiPose?: NawiPose;
 }
 
 export type AttractionCategory =

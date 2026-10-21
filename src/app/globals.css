@@ -477,36 +477,13 @@ input[type="range"]::-moz-range-thumb {
 /* ============================================================
    Nawi Mascot Animations
    ============================================================ */
-@keyframes nawiBob {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-6px); }
-}
-
-@keyframes nawiRipple {
-  0%, 100% { opacity: 0.5; transform: scaleX(1); }
-  50% { opacity: 0.3; transform: scaleX(1.08); }
-}
-
-@keyframes speechBubblePop {
-  0% {
-    opacity: 0;
-    transform: scale(0.85) translateY(8px);
-  }
-  60% {
-    transform: scale(1.03) translateY(-1px);
-  }
-  100% {
-    opacity: 1;
-    transform: scale(1) translateY(0);
-  }
-}
-
 .nawi-mascot-wrapper {
-  animation: nawiBob 3s ease-in-out infinite;
+  animation: none !important;
+  transform: none !important;
 }
 
 .nawi-mascot-wrapper .nawi-ripples ellipse {
-  animation: nawiRipple 2.5s ease-in-out infinite;
+  animation: none !important;
 }
 
 .nawi-speech-bubble {
@@ -621,29 +598,21 @@ input[type="range"]::-moz-range-thumb {
   align-items: flex-start;
   gap: 4px;
   pointer-events: none;            /* pass clicks through except on children */
-  animation: nawi-float 3s ease-in-out infinite;
 }
 
 .nawi-buddy-container > * {
   pointer-events: auto;
 }
 
-/* Gentle float idle animation */
+/* Gentle float idle animation (disabled) */
 @keyframes nawi-float {
   0%, 100% { transform: translateY(0); }
-  50%      { transform: translateY(-6px); }
+  50%      { transform: translateY(0); }
 }
 
-/* Bounce on interaction */
+/* Bounce on interaction (disabled) */
 .nawi-bounce {
-  animation: nawi-bounce-anim 0.6s ease !important;
-}
-@keyframes nawi-bounce-anim {
-  0%   { transform: translateY(0) scale(1); }
-  25%  { transform: translateY(-14px) scale(1.08); }
-  50%  { transform: translateY(-4px) scale(0.96); }
-  70%  { transform: translateY(-8px) scale(1.03); }
-  100% { transform: translateY(0) scale(1); }
+  /* Disabled per user request */
 }
 
 /* Avatar button — contains the mascot image */
@@ -763,11 +732,15 @@ input[type="range"]::-moz-range-thumb {
   align-items: center;
   justify-content: center;
   transition: transform 0.2s ease, box-shadow 0.2s ease;
-  animation: nawi-float 3s ease-in-out infinite;
 }
 
 .nawi-buddy-restore:hover {
   transform: scale(1.12);
   box-shadow: 0 6px 18px rgba(5, 150, 105, 0.4);
 }
+
+.animate-nawi-float {
+  /* Disabled bouncing/floating animation */
+}
+
 

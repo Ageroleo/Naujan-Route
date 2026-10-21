@@ -2,6 +2,8 @@ import type { Metadata, Viewport } from 'next';
 import './globals.css';
 import Header from '@/components/layout/Header';
 import BottomNav from '@/components/layout/BottomNav';
+import EmergencyQuickAccess from '@/components/emergency/EmergencyQuickAccess';
+import NawiCompanionDock from '@/components/mascot/NawiCompanionDock';
 
 export const metadata: Metadata = {
   title: {
@@ -22,6 +24,15 @@ export const metadata: Metadata = {
     'waterfalls',
   ],
   authors: [{ name: 'Municipality of Naujan' }],
+  icons: {
+    icon: [
+      { url: '/favicon.ico' },
+      { url: '/icon.png', sizes: '512x512', type: 'image/png' },
+    ],
+    apple: [
+      { url: '/apple-icon.png', sizes: '180x180', type: 'image/png' },
+    ],
+  },
   openGraph: {
     title: 'Naujan Trail — Tourism Guide',
     description:
@@ -51,6 +62,8 @@ export default function RootLayout({
         <main className="page-content">
           {children}
         </main>
+        <EmergencyQuickAccess />
+        <NawiCompanionDock />
         <BottomNav />
       </body>
     </html>

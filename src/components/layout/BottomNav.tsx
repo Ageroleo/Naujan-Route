@@ -2,11 +2,12 @@
 
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
-import { Compass, Map, Calculator, Phone } from 'lucide-react';
+import { Compass, Map, Calculator, Phone, Building2 } from 'lucide-react';
 
 const NAV_ITEMS = [
   { href: '/', label: 'Explore', icon: Compass },
   { href: '/map', label: 'Map', icon: Map },
+  { href: '/directory', label: 'Directory', icon: Building2 },
   { href: '/fare-calculator', label: 'Fare', icon: Calculator },
   { href: '/emergency', label: 'Emergency', icon: Phone },
 ] as const;

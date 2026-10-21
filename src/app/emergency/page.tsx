@@ -59,16 +59,27 @@ export default function EmergencyPage() {
   return (
     <div className="px-4 py-6 md:py-8 max-w-7xl mx-auto space-y-5">
       {/* Page Header */}
-      <div className="space-y-2 animate-fade-in">
-        <div className="flex items-center gap-2">
-          <Shield size={18} className="text-red-600" />
-          <h2 className="text-lg font-bold font-[family-name:var(--font-display)] text-slate-900">
-            Emergency Contacts
-          </h2>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 animate-fade-in">
+        <div className="space-y-1">
+          <div className="flex items-center gap-2">
+            <Shield size={20} className="text-red-600" />
+            <h2 className="text-xl font-bold font-[family-name:var(--font-display)] text-slate-900">
+              Emergency Hotlines &amp; Contacts
+            </h2>
+          </div>
+          <p className="text-xs text-slate-600">
+            One-tap calling to emergency services. Operates over cellular voice networks offline.
+          </p>
         </div>
-        <p className="text-xs text-slate-600">
-          One-tap calling to emergency services. Available offline.
-        </p>
+
+        <button
+          onClick={() => window.dispatchEvent(new CustomEvent('open-emergency-modal'))}
+          className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-red-600 hover:bg-red-700 text-white font-extrabold text-xs shadow-md active:scale-95 transition-all self-start sm:self-auto cursor-pointer"
+          id="open-modal-from-page"
+        >
+          <Shield size={14} className="animate-pulse" />
+          <span>Quick Assistance Dialog (911 / 143)</span>
+        </button>
       </div>
 
       {/* Offline indicator */}

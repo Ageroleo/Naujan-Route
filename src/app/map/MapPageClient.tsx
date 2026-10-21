@@ -22,14 +22,19 @@ import {
   Route as RouteIcon,
   AlertTriangle,
   MapPin,
+  DollarSign,
+  Info,
+  Phone,
+  PhoneOff,
+  Sparkles,
 } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
-import { FALLBACK_ATTRACTIONS } from '@/lib/data/fallback';
+import { FALLBACK_ATTRACTIONS, enrichWithTrailData } from '@/lib/data/fallback';
 import { CATEGORY_CONFIG, type Attraction } from '@/lib/types/database';
 import { CATEGORY_ICONS, CATEGORY_SVG_STRINGS } from '@/components/icons/CategoryIcons';
 import { fetchRoutes, type RouteResult } from '@/lib/routing';
 import { calculateCombinedFare, type CombinedFareResult } from '@/lib/data/jeepney-route';
-import NawiMapBuddy from '@/components/mascot/NawiMapBuddy';
+import NawiReminderBanner from '@/components/mascot/NawiReminderBanner';
 
 // Naujan center coordinates
 const NAUJAN_CENTER: [number, number] = [13.2500, 121.2500];
@@ -228,6 +233,8 @@ export default function MapPageClient() {
   const [attractions, setAttractions] = useState<Attraction[]>(FALLBACK_ATTRACTIONS);
   const [userLocation, setUserLocation] = useState<[number, number] | null>(null);
   const [fareExpanded, setFareExpanded] = useState(true);
+  const [spotInfoExpanded, setSpotInfoExpanded] = useState(true);
+  const [showVerifyNote, setShowVerifyNote] = useState(false);
 
   // Routing state — now supports multiple alternatives
   const [allRoutes, setAllRoutes] = useState<RouteResult[]>([]);
@@ -245,6 +252,15 @@ export default function MapPageClient() {
     () => (attractionSlug ? attractions.find((a) => a.slug === attractionSlug) || null : null),
     [attractionSlug, attractions]
   );
+
+  // Notify Nawi companion dock when target attraction changes
+  useEffect(() => {
+    if (targetAttraction) {
+      window.dispatchEvent(
+        new CustomEvent('nawi-select-attraction', { detail: targetAttraction })
+      );
+    }
+  }, [targetAttraction]);
 
   // Currently selected route (derived from allRoutes)
   const activeRoute: RouteResult | null = useMemo(
@@ -285,7 +301,7 @@ export default function MapPageClient() {
         const attractionsRes = await supabase.from('attractions').select('*').order('name');
 
         if (!attractionsRes.error && attractionsRes.data?.length) {
-          setAttractions(attractionsRes.data as Attraction[]);
+          setAttractions((attractionsRes.data as Attraction[]).map(enrichWithTrailData));
         }
       } catch {
         // Use fallback
@@ -408,6 +424,90 @@ export default function MapPageClient() {
         </div>
       </div>
 
+      {/* ── Tourist Spot Info Card (visible when navigating to a spot) ── */}
+      {targetAttraction && (
+        <div className="bg-white rounded-xl overflow-hidden border border-slate-200 shadow-sm animate-fade-in-up" style={{ animationDelay: '0.05s' }}>
+          {/* Card Header — always visible, toggles expand */}
+          <button
+            onClick={() => setSpotInfoExpanded(!spotInfoExpanded)}
+            className="w-full flex items-center justify-between p-3 text-left hover:bg-slate-50 transition-colors"
+            id="toggle-spot-info-button"
+          >
+            <div className="flex items-center gap-2.5">
+              <div
+                className="w-9 h-9 rounded-lg flex items-center justify-center shrink-0"
+                style={{ backgroundColor: `${CATEGORY_CONFIG[targetAttraction.category]?.color}14` }}
+              >
+                <Info size={17} style={{ color: CATEGORY_CONFIG[targetAttraction.category]?.color }} />
+              </div>
+              <div className="min-w-0">
+                <p className="text-sm font-bold text-slate-900 truncate">About this spot</p>
+                <p className="text-[10px] text-slate-500 truncate">
+                  {targetAttraction.name}
+                </p>
+              </div>
+            </div>
+            {spotInfoExpanded
+              ? <ChevronUp size={16} className="text-slate-400 shrink-0" />
+              : <ChevronDown size={16} className="text-slate-400 shrink-0" />
+            }
+          </button>
+
+          {/* Expandable Content */}
+          {spotInfoExpanded && (
+            <div className="px-3 pb-3 space-y-3 animate-fade-in">
+              {/* Cover Image */}
+              {targetAttraction.cover_image && (
+                <div className="relative h-40 rounded-lg overflow-hidden bg-slate-100">
+                  <div
+                    className="absolute inset-0"
+                    style={{
+                      backgroundImage: `url(${encodeURI(targetAttraction.cover_image)})`,
+                      backgroundSize: 'cover',
+                      backgroundPosition: 'center',
+                    }}
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent" />
+                  {/* Category badge on image */}
+                  <div className="absolute top-2 right-2 badge flex items-center gap-1 bg-white/90 backdrop-blur-sm text-slate-800 shadow-xs">
+                    {(() => {
+                      const Icon = CATEGORY_ICONS[targetAttraction.category];
+                      return Icon ? <Icon size={12} style={{ color: CATEGORY_CONFIG[targetAttraction.category]?.color }} /> : null;
+                    })()}
+                    <span className="text-[10px] font-semibold">{CATEGORY_CONFIG[targetAttraction.category]?.label}</span>
+                  </div>
+                </div>
+              )}
+
+              {/* Description */}
+              {targetAttraction.description && (
+                <p className="text-xs text-slate-700 leading-relaxed">
+                  {targetAttraction.description}
+                </p>
+              )}
+
+              {/* Quick info pills */}
+              <div className="flex flex-wrap gap-2">
+                {targetAttraction.barangay && (
+                  <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-slate-50 text-[11px] text-slate-600">
+                    <MapPin size={12} className="text-emerald-600 shrink-0" />
+                    Brgy. {targetAttraction.barangay}
+                  </span>
+                )}
+                <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-slate-50 text-[11px] text-slate-600">
+                  <DollarSign size={12} className="text-amber-600 shrink-0" />
+                  {targetAttraction.entrance_fee}
+                </span>
+                <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-slate-50 text-[11px] text-slate-600">
+                  <Clock size={12} className="text-sky-600 shrink-0" />
+                  {targetAttraction.opening_hours}
+                </span>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
       {/* Map Container */}
       <div
         className="rounded-2xl overflow-hidden border border-slate-200 shadow-sm animate-fade-in-up"
@@ -450,14 +550,56 @@ export default function MapPageClient() {
                 )}
               >
                 <Popup>
-                  <div className="space-y-1.5 min-w-[180px]">
-                    <h3 className="font-bold text-sm text-slate-900">{attraction.name}</h3>
-                    <p className="text-xs text-slate-600 line-clamp-2">
-                      {attraction.description}
-                    </p>
-                    <div className="flex items-center gap-2 text-[10px] text-slate-500 pt-1">
-                      <span>📍 Brgy. {attraction.barangay}</span>
-                      <span>💰 {attraction.entrance_fee}</span>
+                  <div className="space-y-2 min-w-[210px] max-w-[260px] p-0.5">
+                    <div className="flex items-start justify-between gap-1.5">
+                      <h3 className="font-bold text-sm text-slate-900 leading-tight">{attraction.name}</h3>
+                      {attraction.requiresVerification && (
+                        <span className="shrink-0 text-[9px] bg-amber-100 text-amber-900 font-extrabold px-1.5 py-0.5 rounded-full border border-amber-300">
+                          Verify
+                        </span>
+                      )}
+                    </div>
+                    {attraction.description && (
+                      <p className="text-xs text-slate-600 line-clamp-2">
+                        {attraction.description}
+                      </p>
+                    )}
+                    <div className="text-[11px] text-slate-600 space-y-0.5 pt-1 border-t border-slate-100">
+                      <div>📍 {attraction.publishedLocation || (attraction.barangay ? `Brgy. ${attraction.barangay}` : 'Naujan')}</div>
+                      <div>💰 {attraction.admissionStatus || attraction.entrance_fee}</div>
+                      {attraction.publishedContact && (
+                        <div>📞 {attraction.publishedContact}</div>
+                      )}
+                    </div>
+                    {Array.isArray(attraction.activities) && attraction.activities.length > 0 && (
+                      <div className="flex flex-wrap gap-1 pt-0.5">
+                        {attraction.activities.slice(0, 3).map((act, i) => (
+                          <span
+                            key={i}
+                            className="rounded-full px-2 py-0.5 text-[10px] font-medium bg-emerald-50 text-emerald-800 border border-emerald-200"
+                          >
+                            {typeof act === 'string' ? act : (act as { name: string }).name}
+                          </span>
+                        ))}
+                        {attraction.activities.length > 3 && (
+                          <span className="text-[10px] text-slate-400 self-center">
+                            +{attraction.activities.length - 3} more
+                          </span>
+                        )}
+                      </div>
+                    )}
+                    {attraction.nawiReminder && (
+                      <div className="text-[10px] text-emerald-900 bg-emerald-50 rounded-lg p-2 border border-emerald-200/80 leading-snug">
+                        🦆 <strong>Nawi:</strong> {attraction.nawiReminder}
+                      </div>
+                    )}
+                    <div className="pt-1">
+                      <a
+                        href={`/map?attraction=${attraction.slug}`}
+                        className="block text-center text-xs font-bold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 py-1.5 px-2 rounded-lg border border-emerald-200 transition-colors"
+                      >
+                        Set as Destination &rarr;
+                      </a>
                     </div>
                   </div>
                 </Popup>
@@ -600,6 +742,183 @@ export default function MapPageClient() {
               );
             })}
           </div>
+        </div>
+      )}
+
+      {/* ── Destination Digital Trail Details Card ── */}
+      {targetAttraction && (
+        <div className="bg-white rounded-xl overflow-hidden border border-slate-200 shadow-sm animate-fade-in-up" id="destination-trail-card">
+          <button
+            onClick={() => setSpotInfoExpanded(!spotInfoExpanded)}
+            className="w-full flex items-center justify-between p-3.5 text-left hover:bg-slate-50 transition-colors"
+          >
+            <div className="flex items-center gap-2.5 min-w-0">
+              <div
+                className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0 shadow-xs"
+                style={{ backgroundColor: `${CATEGORY_CONFIG[targetAttraction.category]?.color || '#059669'}15` }}
+              >
+                {(() => {
+                  const Icon = CATEGORY_ICONS[targetAttraction.category];
+                  return Icon ? <Icon size={18} style={{ color: CATEGORY_CONFIG[targetAttraction.category]?.color || '#059669' }} /> : null;
+                })()}
+              </div>
+              <div className="min-w-0">
+                <div className="flex items-center gap-2">
+                  <h3 className="text-sm font-bold text-slate-900 truncate">{targetAttraction.name}</h3>
+                  {targetAttraction.requiresVerification && (
+                    <span className="shrink-0 inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-500 text-white shadow-2xs">
+                      <AlertTriangle size={11} strokeWidth={2.5} />
+                      Local Verification Pending
+                    </span>
+                  )}
+                </div>
+                <p className="text-[11px] text-slate-500 truncate">
+                  {targetAttraction.publishedLocation || (targetAttraction.barangay ? `Brgy. ${targetAttraction.barangay}, Naujan` : 'Naujan')}
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center gap-1 shrink-0 text-slate-400">
+              <span className="text-xs font-semibold text-emerald-700 mr-1">
+                {spotInfoExpanded ? 'Hide Guide' : 'View Guide'}
+              </span>
+              {spotInfoExpanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+            </div>
+          </button>
+
+          {spotInfoExpanded && (
+            <div className="px-3.5 pb-3.5 space-y-3 border-t border-slate-100 animate-fade-in">
+              {/* Verification status expandable note */}
+              {targetAttraction.requiresVerification && (
+                <div className="rounded-xl border border-amber-300 bg-amber-50/90 p-2.5 text-xs text-amber-950 space-y-1">
+                  <div className="flex items-center justify-between">
+                    <span className="font-bold flex items-center gap-1 text-amber-900">
+                      <AlertTriangle size={13} className="text-amber-600 shrink-0" />
+                      Local Verification Pending
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => setShowVerifyNote(!showVerifyNote)}
+                      className="text-[11px] font-semibold text-amber-800 hover:text-amber-950 underline cursor-pointer"
+                    >
+                      {showVerifyNote ? 'Hide details' : 'View note'}
+                    </button>
+                  </div>
+                  {showVerifyNote && targetAttraction.verificationNote && (
+                    <p className="text-[11px] text-amber-900/90 leading-relaxed pt-1 border-t border-amber-200">
+                      {targetAttraction.verificationNote}
+                    </p>
+                  )}
+                </div>
+              )}
+
+              {/* Description */}
+              {targetAttraction.description && (
+                <p className="text-xs text-slate-700 leading-relaxed">
+                  {targetAttraction.description}
+                </p>
+              )}
+
+              {/* Location & Contact Info */}
+              <div className="space-y-1.5 text-xs bg-slate-50 rounded-xl p-3 border border-slate-200/60">
+                <div className="flex items-start gap-1.5 text-slate-700">
+                  <MapPin size={13} className="text-emerald-600 shrink-0 mt-0.5" />
+                  <div>
+                    <span className="font-semibold text-slate-900">Location: </span>
+                    <span>{targetAttraction.publishedLocation || (targetAttraction.barangay ? `Brgy. ${targetAttraction.barangay}, Naujan` : 'Naujan')}</span>
+                  </div>
+                </div>
+
+                <div className="flex items-start gap-1.5 text-slate-700">
+                  <Info size={13} className="text-sky-600 shrink-0 mt-0.5" />
+                  <div>
+                    <span className="font-semibold text-slate-900">Visitor Info: </span>
+                    <span>
+                      {targetAttraction.visitorInfo || `${targetAttraction.admissionStatus || targetAttraction.entrance_fee} • ${targetAttraction.opening_hours}`}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Contact row */}
+                <div className="flex flex-wrap items-center gap-2 pt-1">
+                  <span className="font-semibold text-slate-900">Contact:</span>
+                  {(() => {
+                    const contact = targetAttraction.publishedContact || targetAttraction.contact_number;
+                    if (contact && contact !== 'For verification' && /[0-9]/.test(contact)) {
+                      return (
+                        <a
+                          href={`tel:${contact.replace(/[^\d+]/g, '')}`}
+                          className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-emerald-600 text-white text-xs font-semibold hover:bg-emerald-700 transition-colors shadow-2xs"
+                        >
+                          <Phone size={11} strokeWidth={2.5} />
+                          <span>{contact}</span>
+                        </a>
+                      );
+                    }
+                    if (contact === 'For verification') {
+                      return (
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-medium bg-slate-200 text-slate-600">
+                          <PhoneOff size={11} />
+                          For verification
+                        </span>
+                      );
+                    }
+                    return <span className="text-[11px] text-slate-500">Contact MTO</span>;
+                  })()}
+
+                  {(targetAttraction.admissionStatus || targetAttraction.entrance_fee) && (
+                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-medium bg-emerald-100/80 text-emerald-800 ml-auto">
+                      <DollarSign size={11} className="text-emerald-700" />
+                      {targetAttraction.admissionStatus || targetAttraction.entrance_fee}
+                    </span>
+                  )}
+                </div>
+              </div>
+
+              {/* Available Activities Chips */}
+              {Array.isArray(targetAttraction.activities) && targetAttraction.activities.length > 0 && (
+                <div className="space-y-1.5">
+                  <div className="flex items-center gap-1 text-[11px] font-bold uppercase tracking-wider text-slate-500">
+                    <Sparkles size={11} className="text-emerald-600" />
+                    <span>Available Activities</span>
+                  </div>
+                  <div className="flex flex-wrap gap-1.5">
+                    {targetAttraction.activities.map((act, i) => (
+                      <span
+                        key={i}
+                        className="rounded-full px-3 py-1 text-xs font-medium bg-emerald-50 text-emerald-800 border border-emerald-200/80 hover:bg-emerald-100 transition-colors"
+                      >
+                        {typeof act === 'string' ? act : (act as { name: string }).name}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Nawi Reminder Banner */}
+              {targetAttraction.nawiReminder && (
+                <NawiReminderBanner
+                  reminder={targetAttraction.nawiReminder}
+                  attractionName={targetAttraction.name}
+                  pose={targetAttraction.nawiPose}
+                />
+              )}
+
+              {/* Official Source Link */}
+              {targetAttraction.sourceUrl && (
+                <div className="pt-0.5">
+                  <a
+                    href={targetAttraction.sourceUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1.5 text-xs font-semibold text-emerald-700 hover:text-emerald-800 hover:underline"
+                  >
+                    <ExternalLink size={12} className="shrink-0" />
+                    <span>Official Listing (Travel Oriental Mindoro)</span>
+                  </a>
+                </div>
+              )}
+            </div>
+          )}
         </div>
       )}
 
@@ -924,9 +1243,6 @@ export default function MapPageClient() {
           </div>
         </div>
       )}
-
-      {/* Nawi — playful floating mascot buddy */}
-      <NawiMapBuddy isNavigating={!!targetAttraction} />
     </div>
   );
 }

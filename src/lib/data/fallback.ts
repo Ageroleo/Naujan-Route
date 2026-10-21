@@ -2,16 +2,64 @@
 // This ensures the app works even without database connectivity
 
 import type { Attraction, Route, TransportMatrix, EmergencyContact } from '@/lib/types/database';
+import { NAUJAN_ATTRACTIONS, type TrailAttraction } from '@/data/naujanTrailData';
 
-export const FALLBACK_ATTRACTIONS: Attraction[] = [
+const TRAIL_MAP: Record<string, TrailAttraction> = {
+  'naujan-lake-boardwalk-bicycle-lane': NAUJAN_ATTRACTIONS[0],
+  'naujan-lake-boardwalk': NAUJAN_ATTRACTIONS[0],
+  'naujan-town-plaza': NAUJAN_ATTRACTIONS[1],
+  '333-steps': NAUJAN_ATTRACTIONS[2],
+  'simbahang-bato': NAUJAN_ATTRACTIONS[3],
+  'malinao-beach-resort': NAUJAN_ATTRACTIONS[4],
+  'macapili-beach': NAUJAN_ATTRACTIONS[5],
+  'arangin-falls': NAUJAN_ATTRACTIONS[6],
+  'pungao-hot-spring-montelago-hot-spring': NAUJAN_ATTRACTIONS[7],
+  'montelago-hot-spring': NAUJAN_ATTRACTIONS[7],
+  'karacha-falls': NAUJAN_ATTRACTIONS[8],
+  'dao-water-lily-mini-park': NAUJAN_ATTRACTIONS[9],
+  'paitan-river': NAUJAN_ATTRACTIONS[10],
+};
+
+export function enrichWithTrailData(attraction: Attraction): Attraction {
+  const trail =
+    TRAIL_MAP[attraction.slug] ||
+    TRAIL_MAP[attraction.id] ||
+    NAUJAN_ATTRACTIONS.find((t) => t.name.toLowerCase() === attraction.name.toLowerCase());
+
+  if (!trail) return attraction;
+
+  return {
+    ...attraction,
+    activities:
+      attraction.activities && (attraction.activities as any[]).length > 0
+        ? (attraction.activities as string[])
+        : trail.activities,
+    activitiesSummary: attraction.activitiesSummary || trail.activitiesSummary,
+    nawiReminder: attraction.nawiReminder || trail.nawiReminder,
+    publishedLocation: attraction.publishedLocation || trail.publishedLocation,
+    publishedContact: attraction.publishedContact || trail.publishedContact,
+    admissionStatus: attraction.admissionStatus || trail.admissionStatus,
+    visitorInfo: attraction.visitorInfo || trail.visitorInfo,
+    sourceUrl: attraction.sourceUrl || trail.sourceUrl,
+    sourceLabel: attraction.sourceLabel || trail.sourceLabel,
+    requiresVerification:
+      attraction.requiresVerification !== undefined
+        ? attraction.requiresVerification
+        : trail.requiresVerification,
+    verificationNote: attraction.verificationNote || trail.verificationNote,
+    nawiPose: attraction.nawiPose || trail.nawiPose,
+  };
+}
+
+const RAW_ATTRACTIONS: Attraction[] = [
   {
     id: '1',
     name: 'Largo Castillo Farm Resort',
     slug: 'largo-castillo-farm-resort',
     category: 'resort',
     description: 'A farm resort in Barangay Estrella blending agriculture and leisure, offering a unique countryside retreat experience.',
-    latitude: 13.2120,
-    longitude: 121.3420,
+    latitude: 13.326464254071587,
+    longitude: 121.31453888903856,
     barangay: 'Estrella',
     entrance_fee: 'Varies',
     opening_hours: '6:00 AM – 6:00 PM',
@@ -213,6 +261,8 @@ export const FALLBACK_ATTRACTIONS: Attraction[] = [
     created_at: new Date().toISOString(),
   },
 ];
+
+export const FALLBACK_ATTRACTIONS: Attraction[] = RAW_ATTRACTIONS.map(enrichWithTrailData);
 
 export const FALLBACK_ROUTES: Route[] = [
   {
