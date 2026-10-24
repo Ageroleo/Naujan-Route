@@ -9,7 +9,6 @@ import AttractionCard from '@/components/attractions/AttractionCard';
 import HeroSlider from '@/components/home/HeroSlider';
 import NawiMascot from '@/components/mascot/Nawi';
 import NawiEmptyState from '@/components/mascot/NawiEmptyState';
-import VisitorDirectorySection from '@/components/directory/VisitorDirectorySection';
 import { createClient } from '@/lib/supabase/client';
 import { FALLBACK_ATTRACTIONS, enrichWithTrailData } from '@/lib/data/fallback';
 import type { Attraction, AttractionCategory } from '@/lib/types/database';
@@ -178,9 +177,6 @@ export default function HomePage() {
             />
           )}
         </section>
-
-        {/* Visitor Directory Section */}
-        <VisitorDirectorySection />
       </div>
     </div>
   );

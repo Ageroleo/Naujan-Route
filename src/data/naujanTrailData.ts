@@ -61,7 +61,7 @@ export interface TrailReference {
 export const NAUJAN_ATTRACTIONS: TrailAttraction[] = [
   {
     id: "naujan-lake-boardwalk",
-    name: "Naujan Lake Boardwalk and Bicycle Lane",
+    name: "Naujan Lake",
     publishedLocation: "Vista Pilar Batong Dalig (listed under Socorro)",
     publishedContact: "0939-363-5900",
     admissionStatus: "Free admission listed",

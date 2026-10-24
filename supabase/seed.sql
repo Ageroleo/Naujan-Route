@@ -44,7 +44,7 @@ INSERT INTO attractions (name, slug, category, description, latitude, longitude,
   true
 ),
 (
-  'Naujan Lake Boardwalk and Bicycle Lane',
+  'Naujan Lake',
   'naujan-lake-boardwalk-bicycle-lane',
   'lake',
   'A scenic boardwalk and bicycle lane along the shores of Naujan Lake in Barangay Montelago. Perfect for leisurely walks, cycling, and enjoying panoramic lake views.',
@@ -249,7 +249,7 @@ INSERT INTO activities (attraction_id, name, description, cost, duration_mins) V
 ((SELECT id FROM attractions WHERE slug = 'karacha-falls'), 'Swimming', 'Swim in the deep, refreshingly cold natural pool at the base of the waterfall.', 'Free (with entrance fee)', 60),
 ((SELECT id FROM attractions WHERE slug = 'karacha-falls'), 'Trekking', 'Hike through farmlands and forest trails to reach this hidden gem.', 'Free', 45),
 
--- Naujan Lake Boardwalk
+-- Naujan Lake
 ((SELECT id FROM attractions WHERE slug = 'naujan-lake-boardwalk-bicycle-lane'), 'Cycling', 'Ride along the dedicated bicycle lane with scenic lake views.', 'Free (bring your own bike)', 60),
 ((SELECT id FROM attractions WHERE slug = 'naujan-lake-boardwalk-bicycle-lane'), 'Boardwalk Stroll', 'Walk along the boardwalk and enjoy panoramic views of Naujan Lake.', 'Free', 30),
 

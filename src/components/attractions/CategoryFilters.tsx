@@ -17,8 +17,6 @@ const FILTER_CATEGORIES: (AttractionCategory | 'all')[] = [
   'heritage',
   'hot-springs',
   'river',
-  'nature',
-  'adventure',
   'viewpoint',
   'resort',
   'beach',

@@ -252,15 +252,6 @@ export default function MapPageClient() {
     [attractionSlug, attractions]
   );
 
-  // Notify Nawi companion dock when target attraction changes
-  useEffect(() => {
-    if (targetAttraction) {
-      window.dispatchEvent(
-        new CustomEvent('nawi-select-attraction', { detail: targetAttraction })
-      );
-    }
-  }, [targetAttraction]);
-
   // Currently selected route (derived from allRoutes)
   const activeRoute: RouteResult | null = useMemo(
     () => (allRoutes.length > 0 ? allRoutes[selectedRouteIndex] ?? allRoutes[0] : null),

@@ -23,7 +23,7 @@ When a traveler inquires about any of the 11 official destinations, you **must a
 4. **The Published Contact Number** (or indicate if listed as "For verification").
 
 #### The 11 Authoritative Destinations:
-1. **Naujan Lake Boardwalk and Bicycle Lane**
+1. **Naujan Lake**
    - *Location:* Vista Pilar Batong Dalig (listed under Socorro)
    - *Admission:* Free admission listed
    - *Activities:* Walking, Jogging, Cycling, Sightseeing, Lake photography

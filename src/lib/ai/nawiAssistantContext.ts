@@ -78,7 +78,7 @@ You must NEVER invent attraction details, fake contact numbers, or make up opera
 RULE 1: THE 11 NAUJAN TRAIL ATTRACTIONS PROTOCOL
 ------------------------------------------------------------
 When a user asks about ANY of the 11 Naujan trail attractions:
-1. Naujan Lake Boardwalk and Bicycle Lane
+1. Naujan Lake
 2. Naujan Town Plaza
 3. 333 Steps
 4. Simbahang Bato

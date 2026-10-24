@@ -5,7 +5,7 @@ import Image from 'next/image';
 import { MapPin } from 'lucide-react';
 
 const HERO_IMAGES = [
-  { src: '/images/Naujan Lake Boardwalk and Bicycle Lane.jpg', alt: 'Naujan Lake Boardwalk' },
+  { src: '/images/Naujan Lake Boardwalk and Bicycle Lane.jpg', alt: 'Naujan Lake' },
   { src: '/images/Simbahang Bato.jpg', alt: 'Simbahang Bato' },
   { src: '/images/Montelago Hot Spring.jpg', alt: 'Montelago Hot Spring' },
   { src: '/images/Arangin Falls.jpg', alt: 'Arangin Falls' },

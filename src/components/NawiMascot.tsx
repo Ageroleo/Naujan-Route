@@ -6,13 +6,20 @@ import type { NawiPose as CanonicalNawiPose } from '@/data/naujanTrailData';
 
 export type NawiPose =
   | CanonicalNawiPose
+  | 'camera'
+  | 'signpost'
+  | 'scooter'
+  | 'singing'
+  | 'presenting'
+  | 'stepping'
+  | 'map-ground'
+  | 'avatar'
   // Legacy aliases for backward compatibility
   | 'default'
   | 'wave'
   | 'pointing'
   | 'compass'
-  | 'binoculars'
-  | 'signpost';
+  | 'binoculars';
 
 export type NawiSize = 'sm' | 'md' | 'lg' | 'xl';
 
@@ -23,7 +30,7 @@ export interface NawiMascotProps {
   size?: NawiSize | number;
   /** Adds a gentle floating hover animation and subtle scale effect */
   animate?: boolean;
-  /** Applies mix-blend-multiply so light background blends seamlessly */
+  /** Applies subtle drop shadow for depth */
   removeWhiteBg?: boolean;
   /** Optional comic-style speech bubble */
   speechBubble?: string;
@@ -52,13 +59,20 @@ export const NAWI_POSE_IMAGES: Record<string, string> = {
   sunset: '/images/mascot/sunset.png',
   walking: '/images/mascot/walking.png',
   coconut: '/images/mascot/coconut.png',
+  camera: '/images/mascot/camera.png',
+  signpost: '/images/mascot/signpost.png',
+  scooter: '/images/mascot/scooter.png',
+  singing: '/images/mascot/singing.png',
+  presenting: '/images/mascot/presenting.png',
+  stepping: '/images/mascot/stepping.png',
+  'map-ground': '/images/mascot/map-ground.png',
+  avatar: '/images/mascot/avatar.png',
   // Backward compatibility mappings:
   default: '/images/mascot/thumbs-up.png',
-  wave: '/images/mascot/flying.png',
+  wave: '/images/mascot/wave.png',
   pointing: '/images/mascot/phone.png',
   compass: '/images/mascot/map.png',
-  binoculars: '/images/mascot/lakeside.png',
-  signpost: '/images/mascot/walking.png',
+  binoculars: '/images/mascot/binoculars.png',
 };
 
 /**
@@ -238,10 +252,8 @@ export default function NawiMascot({
           sizes="(max-width: 768px) 128px, 176px"
           className="object-contain pointer-events-none select-none"
           style={{
-            mixBlendMode: removeWhiteBg ? 'multiply' : 'normal',
-            filter: removeWhiteBg
-              ? 'drop-shadow(0 6px 12px rgba(0,0,0,0.12))'
-              : 'drop-shadow(0 4px 8px rgba(0,0,0,0.1))',
+            mixBlendMode: 'normal',
+            filter: 'drop-shadow(0 6px 12px rgba(0,0,0,0.12))',
           }}
           priority={size === 'xl' || pose === 'flying'}
           unoptimized

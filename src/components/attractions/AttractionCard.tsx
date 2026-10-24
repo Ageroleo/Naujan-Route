@@ -177,14 +177,7 @@ export default function AttractionCard({ attraction, index = 0 }: AttractionCard
 
           {/* Nawi's Reminder Callout Banner */}
           {attraction.nawiReminder && (
-            <div
-              className="pt-1 cursor-pointer"
-              onClick={() => {
-                window.dispatchEvent(
-                  new CustomEvent('nawi-select-attraction', { detail: attraction })
-                );
-              }}
-            >
+            <div className="pt-1">
               <NawiReminderBanner
                 reminder={attraction.nawiReminder}
                 attractionName={attraction.name}

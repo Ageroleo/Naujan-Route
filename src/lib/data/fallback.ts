@@ -7,6 +7,7 @@ import { NAUJAN_ATTRACTIONS, type TrailAttraction } from '@/data/naujanTrailData
 const TRAIL_MAP: Record<string, TrailAttraction> = {
   'naujan-lake-boardwalk-bicycle-lane': NAUJAN_ATTRACTIONS[0],
   'naujan-lake-boardwalk': NAUJAN_ATTRACTIONS[0],
+  'naujan-lake': NAUJAN_ATTRACTIONS[0],
   'naujan-town-plaza': NAUJAN_ATTRACTIONS[1],
   '333-steps': NAUJAN_ATTRACTIONS[2],
   'simbahang-bato': NAUJAN_ATTRACTIONS[3],
@@ -70,7 +71,7 @@ const RAW_ATTRACTIONS: Attraction[] = [
   },
   {
     id: '2',
-    name: 'Naujan Lake Boardwalk and Bicycle Lane',
+    name: 'Naujan Lake',
     slug: 'naujan-lake-boardwalk-bicycle-lane',
     category: 'lake',
     description: 'A scenic boardwalk and bicycle lane along the shores of Naujan Lake in Barangay Montelago. Perfect for leisurely walks, cycling, and enjoying panoramic lake views.',
